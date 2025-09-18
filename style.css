@@ -1,0 +1,129 @@
+:root{
+  --orange:#ff7a00;
+  --orange-dark:#e05f00;
+  --bg:#ffffff;
+  --muted:#666666;
+  --card-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  font-family: "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", Arial, sans-serif;
+}
+body{
+  margin:0;
+  background: linear-gradient(180deg, #fff 0%, #fffaf5 100%);
+  color:#222;
+}
+header{
+  background: linear-gradient(90deg,var(--orange),var(--orange-dark));
+  color:white;
+  padding:28px 20px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.logo {
+  width:56px;
+  height:56px;
+  border-radius:10px;
+  background:linear-gradient(135deg, #fff2e6, rgba(255,255,255,0.08));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  color:var(--orange-dark);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  font-size:20px;
+}
+header h1{
+  margin:0;
+  font-size:20px;
+  line-height:1.0;
+}
+header p{
+  margin:0;
+  opacity:0.95;
+  font-size:13px;
+}
+main{
+  max-width:980px;
+  margin:28px auto;
+  padding:18px;
+}
+.card{
+  background:var(--bg);
+  border-radius:12px;
+  padding:18px;
+  box-shadow:var(--card-shadow);
+  margin-bottom:18px;
+}
+.form-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+label{
+  display:block;
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+select,input[type="number"]{
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid #e8e8e8;
+  min-width:180px;
+  font-size:14px;
+  background:white;
+}
+.col{
+  flex:1 1 220px;
+  min-width:220px;
+}
+.actions{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin-top:12px;
+}
+button{
+  background:var(--orange);
+  color:white;
+  border:none;
+  padding:10px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+button.secondary{
+  background:transparent;
+  color:var(--orange-dark);
+  border:1px solid #ffd6b3;
+}
+.result{
+  display:flex;
+  gap:18px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+.price{
+  font-size:28px;
+  font-weight:700;
+  color:var(--orange-dark);
+}
+.breakdown{
+  font-size:13px;
+  color:var(--muted);
+}
+footer{
+  text-align:center;
+  color:var(--muted);
+  margin:18px 0 60px 0;
+  font-size:13px;
+}
+
+/* responsive */
+@media (max-width:640px){
+  header{padding:18px;}
+  .col{min-width:100%;}
+  .result{flex-direction:column;align-items:flex-start;}
+}

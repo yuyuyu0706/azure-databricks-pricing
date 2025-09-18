@@ -1,0 +1,58 @@
+{
+  "currency": "USD",
+  "exchange": {
+    "USDJPY": 150
+  },
+  "workloads": {
+    "all-purpose": {
+      "label": "All-purpose（対話型）",
+      "dbu_rates": {
+        "Standard_DS3_v2": 0.15,
+        "Standard_DS4_v2": 0.28,
+        "Standard_DS5_v2": 0.50
+      }
+    },
+    "job": {
+      "label": "Job（バッチ）",
+      "dbu_rates": {
+        "Standard_DS3_v2": 0.11,
+        "Standard_DS4_v2": 0.20,
+        "Standard_DS5_v2": 0.36
+      }
+    },
+    "sql": {
+      "label": "SQL（クエリ）",
+      "dbu_rates": {
+        "Standard_DS3_v2": 0.09,
+        "Standard_DS4_v2": 0.16,
+        "Standard_DS5_v2": 0.30
+      }
+    }
+  },
+  "instances": {
+    "Standard_DS3_v2": {
+      "label": "Standard_DS3_v2",
+      "vm_rate": 0.40,
+      "dbu_per_node": 4
+    },
+    "Standard_DS4_v2": {
+      "label": "Standard_DS4_v2",
+      "vm_rate": 0.80,
+      "dbu_per_node": 8
+    },
+    "Standard_DS5_v2": {
+      "label": "Standard_DS5_v2",
+      "vm_rate": 1.60,
+      "dbu_per_node": 16
+    }
+  },
+  "clusters": {
+    "small": { "label": "Small", "nodes": 2 },
+    "medium": { "label": "Medium", "nodes": 4 },
+    "large": { "label": "Large", "nodes": 8 }
+  },
+  "regions": {
+    "jp-east": { "label": "Japan East", "multiplier": 1.0 },
+    "eastus": { "label": "East US", "multiplier": 0.95 }
+  }
+}
