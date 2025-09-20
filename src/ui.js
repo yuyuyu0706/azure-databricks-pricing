@@ -96,6 +96,7 @@ const elements = {
   themeToggle: document.getElementById('themeToggle'),
   scenarioName: document.getElementById('scenarioName'),
   saveScenario: document.getElementById('saveScenario'),
+  saveVariantScenario: document.getElementById('saveVariantScenario'),
   loadScenario: document.getElementById('loadScenario'),
   deleteScenario: document.getElementById('deleteScenario'),
   currentScenario: document.getElementById('currentScenario'),
@@ -1239,6 +1240,7 @@ function bindEvents() {
   });
 
   elements.saveScenario.addEventListener('click', handleSaveScenario);
+  elements.saveVariantScenario?.addEventListener('click', handleSaveVariantScenario);
   elements.loadScenario.addEventListener('click', () => {
     openScenarioModal();
   });
@@ -1318,6 +1320,9 @@ function handleKeyboardShortcuts(event) {
   if (event.key === 's') {
     event.preventDefault();
     handleSaveScenario();
+  } else if (event.key === 'v') {
+    event.preventDefault();
+    handleSaveVariantScenario();
   } else if (event.key === 'l') {
     event.preventDefault();
     openScenarioModal();
@@ -1386,6 +1391,36 @@ function handleSaveScenario() {
   setBanner('scenario', 'success', t('banner.success.save'));
   renderScenarioList();
   updateScenarioMeta();
+  saveLastState();
+}
+
+function handleSaveVariantScenario() {
+  const name = elements.scenarioName.value.trim();
+  if (!name) {
+    setBanner('scenario', 'error', t('banner.error.scenario_required'));
+    return;
+  }
+  if (!uiState.variant) {
+    setBanner('scenario', 'error', t('banner.error.variant_missing'));
+    return;
+  }
+  const store = { ...scenarioStore };
+  const exists = store[name];
+  if (exists && !window.confirm(t('scenario.overwrite'))) {
+    return;
+  }
+  const entry = {
+    name,
+    createdAt: new Date().toISOString(),
+    payload: cloneScenarioState(uiState.variant, uiState)
+  };
+  store[name] = entry;
+  saveScenarioStore(store);
+  uiState.variant.name = entry.name;
+  uiState.variant.createdAt = entry.createdAt;
+  setBanner('scenario', 'success', t('banner.success.variant_saved'));
+  renderScenarioList();
+  runBaseRender();
   saveLastState();
 }
 

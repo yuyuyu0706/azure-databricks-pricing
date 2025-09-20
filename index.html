@@ -217,6 +217,7 @@
                 </label>
                 <div class="scenario-buttons">
                   <button type="button" id="saveScenario" data-testid="scenario-save" accesskey="s" class="primary-button" data-i18n="scenario.save"></button>
+                  <button type="button" id="saveVariantScenario" data-testid="scenario-save-variant" accesskey="v" class="secondary-button" data-i18n="scenario.save_variant"></button>
                   <button type="button" id="loadScenario" data-testid="scenario-load" accesskey="l" class="secondary-button" data-i18n="scenario.load"></button>
                   <button type="button" id="deleteScenario" data-testid="scenario-delete" accesskey="d" class="ghost-button" data-i18n="scenario.delete"></button>
                 </div>
@@ -378,7 +379,14 @@
         <button type="button" class="ghost-button" data-modal-close data-i18n="modal.close"></button>
       </header>
       <div class="modal-body">
-        <p id="helpModalDescription" data-i18n="help.content"></p>
+        <p class="help-intro" id="helpModalDescription" data-i18n="help.intro"></p>
+        <ol class="help-list">
+          <li data-i18n="help.step.setup"></li>
+          <li data-i18n="help.step.variant"></li>
+          <li data-i18n="help.step.scenario"></li>
+          <li data-i18n="help.step.sensitivity"></li>
+          <li data-i18n="help.step.shortcuts"></li>
+        </ol>
       </div>
     </div>
   </div>
