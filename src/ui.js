@@ -67,12 +67,12 @@ const elements = {
   bannerContainer: document.getElementById('bannerContainer'),
   versionValue: document.getElementById('versionValue'),
   currencyValue: document.getElementById('currencyValue'),
+  regionValue: document.getElementById('regionValue'),
+  editionValue: document.getElementById('editionValue'),
+  headerSourceLink: document.getElementById('headerSourceLink'),
+  headerSourceEffective: document.getElementById('headerSourceEffective'),
   serviceSelect: document.getElementById('serviceSelect'),
   serviceHint: document.getElementById('serviceHint'),
-  editionSelect: document.getElementById('editionSelect'),
-  editionHint: document.getElementById('editionHint'),
-  regionSelect: document.getElementById('regionSelect'),
-  regionHint: document.getElementById('regionHint'),
   serverlessSelect: document.getElementById('serverlessSelect'),
   serverlessHint: document.getElementById('serverlessHint'),
   modeDirectTab: document.getElementById('modeDirectTab'),
@@ -118,8 +118,6 @@ const elements = {
   sensitivityMax: document.getElementById('sensitivityMax'),
   donutChart: document.getElementById('donutChart'),
   donutLegend: document.getElementById('donutLegend'),
-  sourceLink: document.getElementById('sourceLink'),
-  sourceEffective: document.getElementById('sourceEffective'),
   warningsSection: document.getElementById('warningsSection'),
   warningList: document.getElementById('warningList'),
   helpButton: document.getElementById('helpButton'),
@@ -350,7 +348,7 @@ function showInitialSkeleton() {
     elements.variantInfra,
     elements.deltaTotal,
     elements.deltaBreakdown,
-    elements.sourceEffective
+    elements.headerSourceEffective
   ];
   placeholders.forEach((element) => {
     if (!element) return;
@@ -367,8 +365,6 @@ function showInitialSkeleton() {
 function setUiDisabled(disabled) {
   const interactive = [
     elements.serviceSelect,
-    elements.editionSelect,
-    elements.regionSelect,
     elements.serverlessSelect,
     ...Array.from(elements.inputControls || []),
     elements.sensitivityToggle,
@@ -407,7 +403,7 @@ function clearSkeleton() {
     elements.variantInfra,
     elements.deltaTotal,
     elements.deltaBreakdown,
-    elements.sourceEffective
+    elements.headerSourceEffective
   ];
   placeholders.forEach((element) => {
     if (!element) return;
@@ -493,12 +489,6 @@ function updateSelectors() {
   }
   const serviceOptions = computeOptions('service').sort();
   syncSelect(elements.serviceSelect, serviceOptions);
-
-  const editionOptions = computeOptions('edition').sort();
-  syncSelect(elements.editionSelect, editionOptions);
-
-  const regionOptions = computeOptions('region').sort();
-  syncSelect(elements.regionSelect, regionOptions);
 
   const serverlessOptions = computeOptions('serverless').sort((a, b) => String(a).localeCompare(String(b)));
   syncSelect(elements.serverlessSelect, serverlessOptions, (value) => (value === 'true' ? 'Serverless' : 'Dedicated'));
@@ -664,14 +654,10 @@ function applyValidation(validation) {
 
   const selectorMap = new Map([
     ['service', elements.serviceSelect],
-    ['edition', elements.editionSelect],
-    ['region', elements.regionSelect],
     ['serverless', elements.serverlessSelect]
   ]);
   const hintMap = new Map([
     ['service', elements.serviceHint],
-    ['edition', elements.editionHint],
-    ['region', elements.regionHint],
     ['serverless', elements.serverlessHint]
   ]);
   selectorMap.forEach((element, field) => {
@@ -787,10 +773,14 @@ function updateBaseResult(result, record) {
     elements.baseDbu.textContent = '--';
     elements.baseInfra.textContent = '--';
     elements.baseScenarioMeta.textContent = '';
-    elements.sourceEffective.textContent = '--';
-    if (elements.sourceLink) {
-      elements.sourceLink.removeAttribute('href');
-      elements.sourceLink.setAttribute('tabindex', '-1');
+    if (elements.headerSourceEffective) {
+      elements.headerSourceEffective.textContent = '--';
+      elements.headerSourceEffective.removeAttribute('datetime');
+    }
+    if (elements.headerSourceLink) {
+      elements.headerSourceLink.removeAttribute('href');
+      elements.headerSourceLink.setAttribute('tabindex', '-1');
+      elements.headerSourceLink.setAttribute('aria-disabled', 'true');
     }
     return;
   }
@@ -804,22 +794,38 @@ function updateBaseResult(result, record) {
     elements.baseScenarioMeta.textContent = '';
   }
   if (record) {
-    elements.sourceEffective.textContent = record.effective_from || '--';
-    if (record.source) {
-      elements.sourceLink.href = record.source;
-      elements.sourceLink.textContent = t('source.link');
-      elements.sourceLink.removeAttribute('tabindex');
-      elements.sourceLink.setAttribute('title', record.source);
-    } else {
-      elements.sourceLink.removeAttribute('href');
-      elements.sourceLink.setAttribute('tabindex', '-1');
-      elements.sourceLink.textContent = t('source.link');
+    if (elements.headerSourceEffective) {
+      elements.headerSourceEffective.textContent = record.effective_from || '--';
+      if (record.effective_from) {
+        elements.headerSourceEffective.setAttribute('datetime', record.effective_from);
+      } else {
+        elements.headerSourceEffective.removeAttribute('datetime');
+      }
+    }
+    if (elements.headerSourceLink) {
+      elements.headerSourceLink.textContent = t('source.link');
+      if (record.source) {
+        elements.headerSourceLink.href = record.source;
+        elements.headerSourceLink.removeAttribute('tabindex');
+        elements.headerSourceLink.setAttribute('title', record.source);
+        elements.headerSourceLink.setAttribute('aria-disabled', 'false');
+      } else {
+        elements.headerSourceLink.removeAttribute('href');
+        elements.headerSourceLink.setAttribute('tabindex', '-1');
+        elements.headerSourceLink.setAttribute('aria-disabled', 'true');
+      }
     }
   } else {
-    elements.sourceEffective.textContent = '--';
-    elements.sourceLink.removeAttribute('href');
-    elements.sourceLink.setAttribute('tabindex', '-1');
-    elements.sourceLink.textContent = t('source.link');
+    if (elements.headerSourceEffective) {
+      elements.headerSourceEffective.textContent = '--';
+      elements.headerSourceEffective.removeAttribute('datetime');
+    }
+    if (elements.headerSourceLink) {
+      elements.headerSourceLink.removeAttribute('href');
+      elements.headerSourceLink.setAttribute('tabindex', '-1');
+      elements.headerSourceLink.setAttribute('aria-disabled', 'true');
+      elements.headerSourceLink.textContent = t('source.link');
+    }
   }
 }
 
@@ -1048,6 +1054,14 @@ function updateBadges() {
   elements.versionValue.textContent = pricingMeta?.version || '--';
   const currentCurrency = uiState.currency.output || pricingMeta?.currency || '--';
   elements.currencyValue.textContent = currentCurrency;
+  if (elements.regionValue) {
+    const regionLabel = pricingTable?.defaults?.region?.label || pricingTable?.defaults?.region?.key || uiState.rateQuery.region || '--';
+    elements.regionValue.textContent = regionLabel || '--';
+  }
+  if (elements.editionValue) {
+    const editionLabel = pricingTable?.defaults?.edition?.label || pricingTable?.defaults?.edition?.key || uiState.rateQuery.edition || '--';
+    elements.editionValue.textContent = editionLabel || '--';
+  }
 }
 
 function runBaseRender() {
@@ -1136,7 +1150,7 @@ function debounce(fn, wait = 150) {
 function bindEvents() {
   elements.inputControls.forEach((element) => setInputListener(element));
 
-  [elements.serviceSelect, elements.editionSelect, elements.regionSelect, elements.serverlessSelect].forEach((select) => {
+  [elements.serviceSelect, elements.serverlessSelect].forEach((select) => {
     if (!select) return;
     select.addEventListener('change', () => {
       uiState.rateQuery[select.dataset.field] = select.value;
@@ -1581,6 +1595,13 @@ async function initializeApp() {
     pricingTable = result.data;
     pricingMeta = result.metadata;
     pricingIssues = result.issues || [];
+    const defaults = pricingTable?.defaults || {};
+    if (defaults.region?.key) {
+      uiState.rateQuery.region = defaults.region.key;
+    }
+    if (defaults.edition?.key) {
+      uiState.rateQuery.edition = defaults.edition.key;
+    }
     if (pricingMeta?.currency && !uiState.currency.output) {
       uiState.currency.output = pricingMeta.currency;
     }

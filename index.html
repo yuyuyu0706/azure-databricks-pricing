@@ -17,13 +17,28 @@
         </div>
       </div>
       <div class="header-right">
-        <div class="badge" id="versionBadge" aria-live="polite">
-          <span class="badge-label" data-i18n="header.badge.version"></span>
-          <span class="badge-value" id="versionValue">--</span>
+        <div class="badge-stack" aria-live="polite">
+          <div class="badge" id="versionBadge">
+            <span class="badge-label" data-i18n="header.badge.version"></span>
+            <span class="badge-value" id="versionValue">--</span>
+          </div>
+          <a id="headerSourceLink" class="badge-link" target="_blank" rel="noopener" data-i18n="source.link" aria-disabled="true" tabindex="-1"></a>
+          <div class="badge-subtext">
+            <span class="badge-subtext-label" data-i18n="source.effective_from"></span>
+            <time id="headerSourceEffective">--</time>
+          </div>
         </div>
         <div class="badge" id="currencyBadge" aria-live="polite">
           <span class="badge-label" data-i18n="header.badge.currency"></span>
           <span class="badge-value" id="currencyValue">--</span>
+        </div>
+        <div class="badge" id="regionBadge" aria-live="polite">
+          <span class="badge-label" data-i18n="header.badge.region"></span>
+          <span class="badge-value" id="regionValue">--</span>
+        </div>
+        <div class="badge" id="editionBadge" aria-live="polite">
+          <span class="badge-label" data-i18n="header.badge.edition"></span>
+          <span class="badge-value" id="editionValue">--</span>
         </div>
         <button type="button" class="ghost-button" id="helpButton" data-i18n="header.help" aria-haspopup="dialog"></button>
       </div>
@@ -47,16 +62,6 @@
                 <span class="field-label" data-i18n="rates.service"></span>
                 <select id="serviceSelect" class="form-control" data-field="service" aria-describedby="serviceHint"></select>
                 <span class="field-hint" id="serviceHint"></span>
-              </label>
-              <label class="form-field" for="editionSelect">
-                <span class="field-label" data-i18n="rates.edition"></span>
-                <select id="editionSelect" class="form-control" data-field="edition" aria-describedby="editionHint"></select>
-                <span class="field-hint" id="editionHint"></span>
-              </label>
-              <label class="form-field" for="regionSelect">
-                <span class="field-label" data-i18n="rates.region"></span>
-                <select id="regionSelect" class="form-control" data-field="region" aria-describedby="regionHint"></select>
-                <span class="field-hint" id="regionHint"></span>
               </label>
               <label class="form-field" for="serverlessSelect">
                 <span class="field-label" data-i18n="rates.serverless"></span>
@@ -332,39 +337,15 @@
             </div>
           </section>
 
-          <section class="donut-section" aria-labelledby="donutTitle" data-collapsible data-start-collapsed="true">
-            <header class="section-header">
-              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="donutSectionBody">
-                <span class="section-title" role="heading" aria-level="3" id="donutTitle" data-i18n="results.breakdown.title"></span>
-                <span class="section-toggle-icon" aria-hidden="true"></span>
-              </button>
+          <section class="donut-section" aria-labelledby="donutTitle">
+            <header class="section-header is-static">
+              <span class="section-title" role="heading" aria-level="3" id="donutTitle" data-i18n="results.breakdown.title"></span>
             </header>
-            <div class="section-body" id="donutSectionBody">
+            <div class="section-body">
               <div class="donut-wrapper">
                 <div class="donut-chart" id="donutChart" role="img" aria-label="DBU vs Infra"></div>
                 <ul class="donut-legend" id="donutLegend"></ul>
               </div>
-            </div>
-          </section>
-
-          <section class="source-section" aria-labelledby="sourceTitle" data-collapsible data-start-collapsed="true">
-            <header class="section-header">
-              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="sourceSectionBody">
-                <span class="section-title" role="heading" aria-level="3" id="sourceTitle" data-i18n="source.title"></span>
-                <span class="section-toggle-icon" aria-hidden="true"></span>
-              </button>
-            </header>
-            <div class="section-body" id="sourceSectionBody">
-              <dl class="source-details">
-                <div>
-                  <dt data-i18n="source.link"></dt>
-                  <dd><a id="sourceLink" href="#" target="_blank" rel="noopener" data-i18n="source.link"></a></dd>
-                </div>
-                <div>
-                  <dt data-i18n="source.effective_from"></dt>
-                  <dd id="sourceEffective">--</dd>
-                </div>
-              </dl>
             </div>
           </section>
 
