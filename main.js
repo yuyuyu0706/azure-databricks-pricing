@@ -1,4 +1,5 @@
 import { loadPricingData, summarizeIssues } from './src/pricing-loader.js';
+import { estimate } from './src/calc.js';
 
 const bannerContainer = document.getElementById('bannerContainer');
 const versionBadge = document.getElementById('pricingVersion');
@@ -63,8 +64,8 @@ function restoreUiState() {
   }
 }
 
-function formatCurrency(amount) {
-  const currency = metadata?.currency || 'USD';
+function formatCurrency(amount, currencyOverride) {
+  const currency = currencyOverride || metadata?.currency || 'USD';
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
@@ -227,12 +228,39 @@ function calculate() {
     breakdownEl.textContent = '該当するレコードがありません。';
     return;
   }
-  const dbuUsage = Math.max(0, Number.parseFloat(dbuInput.value) || 0);
-  const total = currentRecord.dbu_rate * dbuUsage;
-  const currency = metadata?.currency || 'USD';
+  const dbuUsageRaw = Number.parseFloat(dbuInput.value);
+  const scenario = {
+    rateQuery: {
+      cloud: currentRecord.cloud,
+      region: currentRecord.region,
+      edition: currentRecord.edition,
+      service: currentRecord.service,
+      serverless: currentRecord.serverless
+    },
+    dbu: {
+      dbu_per_month: Number.isFinite(dbuUsageRaw) ? dbuUsageRaw : undefined
+    }
+  };
 
-  totalPriceEl.textContent = formatCurrency(total);
-  breakdownEl.textContent = `DBU 単価 ${currentRecord.dbu_rate.toFixed(2)} ${currency}/DBU × DBU 使用量 ${dbuUsage.toLocaleString()} = ${formatCurrency(total)}`;
+  const result = estimate(scenario, pricingData);
+  const currency = result.meta.currency || metadata?.currency || 'USD';
+  const usageDisplay = result.dbu.usage_month.toLocaleString(undefined, {
+    maximumFractionDigits: 2
+  });
+  const rateDisplay = result.dbu.rate.toFixed(2);
+
+  totalPriceEl.textContent = formatCurrency(result.total, currency);
+
+  const breakdownParts = [
+    `DBU 単価 ${rateDisplay} ${currency}/DBU × DBU 使用量 ${usageDisplay} = ${formatCurrency(result.dbu.cost, currency)}`
+  ];
+  if (result.meta.assumptions.length > 0) {
+    breakdownParts.push(`前提: ${result.meta.assumptions.join('; ')}`);
+  }
+  if (result.meta.warnings.length > 0) {
+    breakdownParts.push(`警告: ${result.meta.warnings.join(', ')}`);
+  }
+  breakdownEl.textContent = breakdownParts.join('\n');
   saveUiState();
 }
 
