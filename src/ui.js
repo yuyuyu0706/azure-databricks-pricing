@@ -1330,19 +1330,37 @@ function handleKeyboardShortcuts(event) {
   }
 }
 
-function cloneScenarioState(source) {
-  const clone = deepClone({
-    rateQuery: source.rateQuery,
-    inputMode: source.inputMode,
-    inputs: source.inputs,
-    currency: source.currency,
-    rounding: source.rounding,
-    sensitivity: source.sensitivity
-  });
-  if (source.scenario?.name) {
-    clone.name = source.scenario.name;
-    clone.createdAt = source.scenario.createdAt;
+function cloneScenarioState(source, fallback = DEFAULT_STATE) {
+  const safeSource = source || {};
+  const safeFallback = fallback || DEFAULT_STATE;
+
+  const base = {
+    rateQuery: deepClone(safeFallback.rateQuery || DEFAULT_STATE.rateQuery),
+    inputMode: safeFallback.inputMode ?? DEFAULT_STATE.inputMode,
+    inputs: deepClone(safeFallback.inputs || DEFAULT_STATE.inputs),
+    currency: deepClone(safeFallback.currency || DEFAULT_STATE.currency),
+    rounding: deepClone(safeFallback.rounding || DEFAULT_STATE.rounding),
+    sensitivity: deepClone(safeFallback.sensitivity || DEFAULT_STATE.sensitivity)
+  };
+
+  const clone = {
+    rateQuery: { ...base.rateQuery, ...(safeSource.rateQuery || {}) },
+    inputMode: safeSource.inputMode ?? base.inputMode,
+    inputs: { ...base.inputs, ...(safeSource.inputs || {}) },
+    currency: { ...base.currency, ...(safeSource.currency || {}) },
+    rounding: { ...base.rounding, ...(safeSource.rounding || {}) },
+    sensitivity: { ...base.sensitivity, ...(safeSource.sensitivity || {}) }
+  };
+
+  const name = safeSource.name || safeSource.scenario?.name;
+  const createdAt = safeSource.createdAt || safeSource.scenario?.createdAt;
+  if (name) {
+    clone.name = name;
   }
+  if (createdAt) {
+    clone.createdAt = createdAt;
+  }
+
   return clone;
 }
 
@@ -1517,7 +1535,7 @@ function applyScenarioToBase(entry) {
 
 function applyScenarioToVariant(entry) {
   if (!entry.payload) return;
-  uiState.variant = cloneScenarioState(entry.payload);
+  uiState.variant = cloneScenarioState(entry.payload, uiState);
   uiState.variant.name = entry.name;
   uiState.variant.createdAt = entry.createdAt;
   closeModal(elements.scenarioModal);
@@ -1575,7 +1593,7 @@ function hydrateState(saved) {
   uiState.sensitivity = { ...uiState.sensitivity, ...saved.sensitivity };
   uiState.theme = saved.theme || uiState.theme;
   uiState.scenario = saved.scenario || null;
-  uiState.variant = saved.variant || null;
+  uiState.variant = saved.variant ? cloneScenarioState(saved.variant, uiState) : null;
 }
 
 async function initializeApp() {
