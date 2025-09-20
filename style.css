@@ -174,12 +174,24 @@ body {
 .primary-button:hover { background:var(--orange-dark); }
 
 .secondary-button {
+  background:rgba(37,99,235,0.08);
+  color:var(--accent);
+  border-color:rgba(37,99,235,0.24);
+}
+
+.secondary-button:hover {
+  background:rgba(37,99,235,0.16);
+}
+
+.app-header .secondary-button {
   background:rgba(255,255,255,0.16);
   color:var(--text-inverse);
   border-color:rgba(255,255,255,0.35);
 }
 
-.secondary-button:hover { background:rgba(255,255,255,0.32); }
+.app-header .secondary-button:hover {
+  background:rgba(255,255,255,0.32);
+}
 
 .ghost-button {
   background:transparent;
