@@ -1,6 +1,16 @@
 {
   "version": "2024-09-20",
   "currency": "USD",
+  "defaults": {
+    "region": {
+      "key": "japaneast",
+      "label": "東日本"
+    },
+    "edition": {
+      "key": "Premium",
+      "label": "Premium"
+    }
+  },
   "notes": "DBU platform rates only. Infrastructure (VM/Storage/Egress) to be modelled separately.",
   "workloads": [
     {
