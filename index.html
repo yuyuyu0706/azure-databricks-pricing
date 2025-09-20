@@ -34,11 +34,15 @@
 
       <div class="layout-grid">
         <section class="panel panel-input" aria-label="Input Panel">
-          <div class="panel-section" id="ratesSection">
+          <div class="panel-section" id="ratesSection" data-collapsible>
             <header class="section-header">
-              <h2 class="section-title" data-i18n="rates.section.title"></h2>
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="true" aria-controls="ratesSectionBody">
+                <span class="section-title" role="heading" aria-level="2" data-i18n="rates.section.title"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
             </header>
-            <div class="field-grid">
+            <div class="section-body" id="ratesSectionBody">
+              <div class="field-grid">
               <label class="form-field" for="serviceSelect">
                 <span class="field-label" data-i18n="rates.service"></span>
                 <select id="serviceSelect" class="form-control" data-field="service" aria-describedby="serviceHint"></select>
@@ -59,23 +63,28 @@
                 <select id="serverlessSelect" class="form-control" data-field="serverless" aria-describedby="serverlessHint"></select>
                 <span class="field-hint" id="serverlessHint"></span>
               </label>
+              </div>
             </div>
           </div>
 
-          <div class="panel-section" id="usageSection">
+          <div class="panel-section" id="usageSection" data-collapsible>
             <header class="section-header">
-              <h2 class="section-title" data-i18n="input.section.title" id="usageSectionTitle"></h2>
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="true" aria-controls="usageSectionBody">
+                <span class="section-title" id="usageSectionTitle" role="heading" aria-level="2" data-i18n="input.section.title"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
+            </header>
+            <div class="section-body" id="usageSectionBody">
               <div class="tab-list" role="tablist" aria-labelledby="usageSectionTitle">
                 <button type="button" id="modeDirectTab" class="tab-button is-active" role="tab" aria-controls="directInputs" aria-selected="true" data-mode="direct" data-i18n="input.mode.direct"></button>
                 <button type="button" id="modeDerivedTab" class="tab-button" role="tab" aria-controls="derivedInputs" aria-selected="false" data-mode="derived" data-i18n="input.mode.derived"></button>
               </div>
-            </header>
-            <div class="tab-panels">
-              <div class="tab-panel is-active" id="directInputs" role="tabpanel" aria-labelledby="modeDirectTab">
-                <label class="form-field" for="dbuPerMonth">
-                  <span class="field-label" data-i18n="input.dbu_per_month"></span>
-                  <input id="dbuPerMonth" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="dbu_per_month" />
-                  <span class="field-error" data-field-error="dbu_per_month"></span>
+              <div class="tab-panels">
+                <div class="tab-panel is-active" id="directInputs" role="tabpanel" aria-labelledby="modeDirectTab">
+                  <label class="form-field" for="dbuPerMonth">
+                    <span class="field-label" data-i18n="input.dbu_per_month"></span>
+                    <input id="dbuPerMonth" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="dbu_per_month" />
+                    <span class="field-error" data-field-error="dbu_per_month"></span>
                 </label>
               </div>
               <div class="tab-panel" id="derivedInputs" role="tabpanel" aria-labelledby="modeDerivedTab" hidden>
@@ -130,93 +139,115 @@
             </div>
           </div>
 
-          <div class="panel-section" id="sensitivitySection">
+          <div class="panel-section" id="sensitivitySection" data-collapsible data-start-collapsed="true">
             <header class="section-header">
-              <h2 class="section-title" data-i18n="sensitivity.title"></h2>
-              <label class="switch">
-                <input type="checkbox" id="sensitivityToggle" />
-                <span class="switch-slider" aria-hidden="true"></span>
-              </label>
-            </header>
-            <div class="sensitivity-controls" aria-live="polite">
-              <div class="sensitivity-row">
-                <span class="sensitivity-label" data-i18n="sensitivity.nodes"></span>
-                <input type="range" min="0" max="20" step="1" id="nodesSensitivityRange" data-field="nodes_pct" />
-                <input type="number" class="sensitivity-input" min="0" max="20" step="1" id="nodesSensitivityInput" />
-                <span class="sensitivity-unit">%</span>
-              </div>
-              <div class="sensitivity-row">
-                <span class="sensitivity-label" data-i18n="sensitivity.hours"></span>
-                <input type="range" min="0" max="20" step="1" id="hoursSensitivityRange" data-field="hours_pct" />
-                <input type="number" class="sensitivity-input" min="0" max="20" step="1" id="hoursSensitivityInput" />
-                <span class="sensitivity-unit">%</span>
-              </div>
-              <div class="sensitivity-row">
-                <span class="sensitivity-label" data-i18n="sensitivity.efficiency"></span>
-                <input type="range" min="0" max="20" step="1" id="efficiencySensitivityRange" data-field="efficiency_pct" />
-                <input type="number" class="sensitivity-input" min="0" max="20" step="1" id="efficiencySensitivityInput" />
-                <span class="sensitivity-unit">%</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-section" id="currencySection">
-            <header class="section-header">
-              <h2 class="section-title" data-i18n="currency.section.title"></h2>
-            </header>
-            <div class="field-grid">
-              <label class="form-field" for="outputCurrency">
-                <span class="field-label" data-i18n="currency.output"></span>
-                <select id="outputCurrency" class="form-control"></select>
-              </label>
-              <label class="form-field" for="fxRate">
-                <span class="field-label" data-i18n="currency.fx_rate"></span>
-                <input id="fxRate" class="form-control" type="number" min="0" step="0.0001" inputmode="decimal" autocomplete="off" />
-              </label>
-            </div>
-          </div>
-
-          <div class="panel-section" id="scenarioSection">
-            <header class="section-header">
-              <h2 class="section-title" data-i18n="scenario.section.title"></h2>
-            </header>
-            <div class="scenario-controls">
-              <label class="form-field" for="scenarioName">
-                <span class="field-label" data-i18n="scenario.name"></span>
-                <input id="scenarioName" class="form-control" type="text" autocomplete="off" data-i18n-placeholder="scenario.name.placeholder" />
-              </label>
-              <div class="scenario-buttons">
-                <button type="button" id="saveScenario" data-testid="scenario-save" accesskey="s" class="primary-button" data-i18n="scenario.save"></button>
-                <button type="button" id="loadScenario" data-testid="scenario-load" accesskey="l" class="secondary-button" data-i18n="scenario.load"></button>
-                <button type="button" id="deleteScenario" data-testid="scenario-delete" accesskey="d" class="ghost-button" data-i18n="scenario.delete"></button>
-              </div>
-              <p class="scenario-meta" id="currentScenario"></p>
-            </div>
-          </div>
-
-          <div class="panel-section" id="settingsSection">
-            <header class="section-header">
-              <h2 class="section-title" data-i18n="settings.section.title"></h2>
-            </header>
-            <div class="field-grid">
-              <label class="form-field" for="roundingMode">
-                <span class="field-label" data-i18n="settings.rounding"></span>
-                <select id="roundingMode" class="form-control">
-                  <option value="half-up">Half up</option>
-                  <option value="bankers">Bankers</option>
-                </select>
-              </label>
-              <label class="form-field" for="roundingScale">
-                <span class="field-label" data-i18n="settings.scale"></span>
-                <input id="roundingScale" class="form-control" type="number" min="0" max="6" step="1" inputmode="numeric" />
-              </label>
-              <label class="form-field switch-field" for="themeToggle">
-                <span class="field-label" data-i18n="settings.dark_mode"></span>
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="sensitivitySectionBody">
+                <span class="section-title" role="heading" aria-level="2" data-i18n="sensitivity.title"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
+              <div class="section-controls">
                 <label class="switch">
-                  <input type="checkbox" id="themeToggle" />
+                  <input type="checkbox" id="sensitivityToggle" />
                   <span class="switch-slider" aria-hidden="true"></span>
                 </label>
-              </label>
+              </div>
+            </header>
+            <div class="section-body" id="sensitivitySectionBody">
+              <div class="sensitivity-controls" aria-live="polite">
+                <div class="sensitivity-row">
+                  <span class="sensitivity-label" data-i18n="sensitivity.nodes"></span>
+                  <input type="range" min="0" max="20" step="1" id="nodesSensitivityRange" data-field="nodes_pct" />
+                  <input type="number" class="sensitivity-input" min="0" max="20" step="1" id="nodesSensitivityInput" />
+                  <span class="sensitivity-unit">%</span>
+                </div>
+                <div class="sensitivity-row">
+                  <span class="sensitivity-label" data-i18n="sensitivity.hours"></span>
+                  <input type="range" min="0" max="20" step="1" id="hoursSensitivityRange" data-field="hours_pct" />
+                  <input type="number" class="sensitivity-input" min="0" max="20" step="1" id="hoursSensitivityInput" />
+                  <span class="sensitivity-unit">%</span>
+                </div>
+                <div class="sensitivity-row">
+                  <span class="sensitivity-label" data-i18n="sensitivity.efficiency"></span>
+                  <input type="range" min="0" max="20" step="1" id="efficiencySensitivityRange" data-field="efficiency_pct" />
+                  <input type="number" class="sensitivity-input" min="0" max="20" step="1" id="efficiencySensitivityInput" />
+                  <span class="sensitivity-unit">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-section" id="currencySection" data-collapsible data-start-collapsed="true">
+            <header class="section-header">
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="currencySectionBody">
+                <span class="section-title" role="heading" aria-level="2" data-i18n="currency.section.title"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
+            </header>
+            <div class="section-body" id="currencySectionBody">
+              <div class="field-grid">
+                <label class="form-field" for="outputCurrency">
+                  <span class="field-label" data-i18n="currency.output"></span>
+                  <select id="outputCurrency" class="form-control"></select>
+                </label>
+                <label class="form-field" for="fxRate">
+                  <span class="field-label" data-i18n="currency.fx_rate"></span>
+                  <input id="fxRate" class="form-control" type="number" min="0" step="0.0001" inputmode="decimal" autocomplete="off" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-section" id="scenarioSection" data-collapsible data-start-collapsed="true">
+            <header class="section-header">
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="scenarioSectionBody">
+                <span class="section-title" role="heading" aria-level="2" data-i18n="scenario.section.title"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
+            </header>
+            <div class="section-body" id="scenarioSectionBody">
+              <div class="scenario-controls">
+                <label class="form-field" for="scenarioName">
+                  <span class="field-label" data-i18n="scenario.name"></span>
+                  <input id="scenarioName" class="form-control" type="text" autocomplete="off" data-i18n-placeholder="scenario.name.placeholder" />
+                </label>
+                <div class="scenario-buttons">
+                  <button type="button" id="saveScenario" data-testid="scenario-save" accesskey="s" class="primary-button" data-i18n="scenario.save"></button>
+                  <button type="button" id="loadScenario" data-testid="scenario-load" accesskey="l" class="secondary-button" data-i18n="scenario.load"></button>
+                  <button type="button" id="deleteScenario" data-testid="scenario-delete" accesskey="d" class="ghost-button" data-i18n="scenario.delete"></button>
+                </div>
+                <p class="scenario-meta" id="currentScenario"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-section" id="settingsSection" data-collapsible data-start-collapsed="true">
+            <header class="section-header">
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="settingsSectionBody">
+                <span class="section-title" role="heading" aria-level="2" data-i18n="settings.section.title"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
+            </header>
+            <div class="section-body" id="settingsSectionBody">
+              <div class="field-grid">
+                <label class="form-field" for="roundingMode">
+                  <span class="field-label" data-i18n="settings.rounding"></span>
+                  <select id="roundingMode" class="form-control">
+                    <option value="half-up">Half up</option>
+                    <option value="bankers">Bankers</option>
+                  </select>
+                </label>
+                <label class="form-field" for="roundingScale">
+                  <span class="field-label" data-i18n="settings.scale"></span>
+                  <input id="roundingScale" class="form-control" type="number" min="0" max="6" step="1" inputmode="numeric" />
+                </label>
+                <label class="form-field switch-field" for="themeToggle">
+                  <span class="field-label" data-i18n="settings.dark_mode"></span>
+                  <label class="switch">
+                    <input type="checkbox" id="themeToggle" />
+                    <span class="switch-slider" aria-hidden="true"></span>
+                  </label>
+                </label>
+              </div>
             </div>
           </div>
         </section>
@@ -276,55 +307,77 @@
             </article>
           </div>
 
-          <section class="sensitivity-summary" id="sensitivitySummary" aria-live="polite" hidden>
-            <h3 class="summary-title" data-i18n="sensitivity.title"></h3>
-            <div class="summary-grid">
-              <div class="summary-item">
-                <span class="summary-label" data-i18n="results.min"></span>
-                <span class="summary-value" id="sensitivityMin">--</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label" data-i18n="results.expected"></span>
-                <span class="summary-value" id="sensitivityExpected">--</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label" data-i18n="results.max"></span>
-                <span class="summary-value" id="sensitivityMax">--</span>
+          <section class="sensitivity-summary" id="sensitivitySummary" aria-live="polite" hidden data-collapsible data-start-collapsed="true">
+            <header class="section-header">
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="sensitivitySummaryBody">
+                <span class="section-title" role="heading" aria-level="3" data-i18n="sensitivity.title"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
+            </header>
+            <div class="section-body" id="sensitivitySummaryBody">
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <span class="summary-label" data-i18n="results.min"></span>
+                  <span class="summary-value" id="sensitivityMin">--</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label" data-i18n="results.expected"></span>
+                  <span class="summary-value" id="sensitivityExpected">--</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label" data-i18n="results.max"></span>
+                  <span class="summary-value" id="sensitivityMax">--</span>
+                </div>
               </div>
             </div>
           </section>
 
-          <section class="donut-section" aria-labelledby="donutTitle">
+          <section class="donut-section" aria-labelledby="donutTitle" data-collapsible data-start-collapsed="true">
             <header class="section-header">
-              <h3 class="section-title" id="donutTitle" data-i18n="results.breakdown.title"></h3>
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="donutSectionBody">
+                <span class="section-title" role="heading" aria-level="3" id="donutTitle" data-i18n="results.breakdown.title"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
             </header>
-            <div class="donut-wrapper">
-              <div class="donut-chart" id="donutChart" role="img" aria-label="DBU vs Infra"></div>
-              <ul class="donut-legend" id="donutLegend"></ul>
+            <div class="section-body" id="donutSectionBody">
+              <div class="donut-wrapper">
+                <div class="donut-chart" id="donutChart" role="img" aria-label="DBU vs Infra"></div>
+                <ul class="donut-legend" id="donutLegend"></ul>
+              </div>
             </div>
           </section>
 
-          <section class="source-section" aria-labelledby="sourceTitle">
+          <section class="source-section" aria-labelledby="sourceTitle" data-collapsible data-start-collapsed="true">
             <header class="section-header">
-              <h3 class="section-title" id="sourceTitle" data-i18n="source.title"></h3>
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="sourceSectionBody">
+                <span class="section-title" role="heading" aria-level="3" id="sourceTitle" data-i18n="source.title"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
             </header>
-            <dl class="source-details">
-              <div>
-                <dt data-i18n="source.link"></dt>
-                <dd><a id="sourceLink" href="#" target="_blank" rel="noopener" data-i18n="source.link"></a></dd>
-              </div>
-              <div>
-                <dt data-i18n="source.effective_from"></dt>
-                <dd id="sourceEffective">--</dd>
-              </div>
-            </dl>
+            <div class="section-body" id="sourceSectionBody">
+              <dl class="source-details">
+                <div>
+                  <dt data-i18n="source.link"></dt>
+                  <dd><a id="sourceLink" href="#" target="_blank" rel="noopener" data-i18n="source.link"></a></dd>
+                </div>
+                <div>
+                  <dt data-i18n="source.effective_from"></dt>
+                  <dd id="sourceEffective">--</dd>
+                </div>
+              </dl>
+            </div>
           </section>
 
-          <section class="warnings-section" id="warningsSection" aria-live="polite" hidden>
+          <section class="warnings-section" id="warningsSection" aria-live="polite" hidden data-collapsible data-start-collapsed="true">
             <header class="section-header">
-              <h3 class="section-title" data-i18n="results.warnings"></h3>
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="warningsSectionBody">
+                <span class="section-title" role="heading" aria-level="3" data-i18n="results.warnings"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
             </header>
-            <ul class="warning-list" id="warningList"></ul>
+            <div class="section-body" id="warningsSectionBody">
+              <ul class="warning-list" id="warningList"></ul>
+            </div>
           </section>
         </section>
       </div>

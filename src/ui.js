@@ -59,6 +59,8 @@ let isReady = false;
 const banners = new Map();
 let activeModal = null;
 let lastFocusedElement = null;
+const collapsibleRegistry = new Map();
+let collapsibleSequence = 0;
 
 const elements = {
   root: document.getElementById('appRoot'),
@@ -154,6 +156,80 @@ function writeJson(key, value) {
   } catch (error) {
     console.warn(`Failed to write localStorage key ${key}`, error);
   }
+}
+
+function applyCollapsibleState(entry, collapsed) {
+  if (!entry) return;
+  entry.section.classList.toggle('is-collapsed', collapsed);
+  entry.toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  entry.body.hidden = collapsed;
+}
+
+function resolveCollapsible(target) {
+  if (!target) return null;
+  if (typeof target === 'string') {
+    if (collapsibleRegistry.has(target)) {
+      return collapsibleRegistry.get(target);
+    }
+    const element = document.getElementById(target);
+    if (!element) return null;
+    if (collapsibleRegistry.has(element)) {
+      return collapsibleRegistry.get(element);
+    }
+    if (element.id && collapsibleRegistry.has(element.id)) {
+      return collapsibleRegistry.get(element.id);
+    }
+    if (element.dataset?.collapsibleId && collapsibleRegistry.has(element.dataset.collapsibleId)) {
+      return collapsibleRegistry.get(element.dataset.collapsibleId);
+    }
+    return null;
+  }
+  if (target instanceof HTMLElement) {
+    if (collapsibleRegistry.has(target)) {
+      return collapsibleRegistry.get(target);
+    }
+    if (target.id && collapsibleRegistry.has(target.id)) {
+      return collapsibleRegistry.get(target.id);
+    }
+    if (target.dataset?.collapsibleId && collapsibleRegistry.has(target.dataset.collapsibleId)) {
+      return collapsibleRegistry.get(target.dataset.collapsibleId);
+    }
+    return null;
+  }
+  return null;
+}
+
+function setCollapsibleState(target, collapsed) {
+  const entry = resolveCollapsible(target);
+  if (!entry) return;
+  applyCollapsibleState(entry, collapsed);
+}
+
+function expandCollapsible(target) {
+  setCollapsibleState(target, false);
+}
+
+function collapseCollapsible(target) {
+  setCollapsibleState(target, true);
+}
+
+function setupCollapsibleSections() {
+  document.querySelectorAll('[data-collapsible]').forEach((section) => {
+    const toggle = section.querySelector('[data-section-toggle]');
+    const body = section.querySelector('.section-body');
+    if (!toggle || !body) return;
+    const entry = { section, toggle, body };
+    const id = section.id || section.dataset.collapsibleId || `collapsible-${collapsibleSequence++}`;
+    section.dataset.collapsibleId = id;
+    collapsibleRegistry.set(id, entry);
+    collapsibleRegistry.set(section, entry);
+    const shouldCollapse = section.classList.contains('is-collapsed') || section.dataset.startCollapsed === 'true';
+    applyCollapsibleState(entry, shouldCollapse);
+    toggle.addEventListener('click', () => {
+      const nextCollapsed = !section.classList.contains('is-collapsed');
+      applyCollapsibleState(entry, nextCollapsed);
+    });
+  });
 }
 
 function loadScenarioStore() {
@@ -759,9 +835,11 @@ function updateWarnings(result) {
   if (!warnings.length) {
     elements.warningsSection.hidden = true;
     elements.warningList.innerHTML = '';
+    collapseCollapsible('warningsSection');
     return;
   }
   elements.warningsSection.hidden = false;
+  expandCollapsible('warningsSection');
   elements.warningList.innerHTML = '';
   warnings.forEach((warning) => {
     const item = document.createElement('li');
@@ -853,15 +931,18 @@ function computeSensitivityScenarios(baseScenario, baseOptions) {
 function updateSensitivitySummary(baseResult, baseScenario, baseOptions) {
   if (!uiState.sensitivity.enabled || !baseResult) {
     elements.sensitivitySummary.hidden = true;
+    collapseCollapsible('sensitivitySummary');
     return;
   }
   const results = computeSensitivityScenarios(baseScenario, baseOptions);
   if (!results) {
     elements.sensitivitySummary.hidden = true;
+    collapseCollapsible('sensitivitySummary');
     return;
   }
   const currency = baseResult.meta.currency;
   elements.sensitivitySummary.hidden = false;
+  expandCollapsible('sensitivitySummary');
   elements.sensitivityMin.textContent = formatCurrency(results.min.total, currency);
   elements.sensitivityExpected.textContent = formatCurrency(baseResult.total, currency);
   elements.sensitivityMax.textContent = formatCurrency(results.max.total, currency);
@@ -1077,7 +1158,15 @@ function bindEvents() {
   });
 
   elements.sensitivityToggle.addEventListener('change', (event) => {
-    uiState.sensitivity.enabled = event.target.checked;
+    const enabled = event.target.checked;
+    uiState.sensitivity.enabled = enabled;
+    if (enabled) {
+      expandCollapsible('sensitivitySection');
+      expandCollapsible('sensitivitySummary');
+    } else {
+      collapseCollapsible('sensitivitySection');
+      collapseCollapsible('sensitivitySummary');
+    }
     syncSensitivityControls();
     runBaseRender();
     saveLastState();
@@ -1479,6 +1568,7 @@ async function initializeApp() {
   applyTranslations(document, 'ja');
   scenarioStore = loadScenarioStore();
   hydrateState(loadLastState());
+  setupCollapsibleSections();
   bindEvents();
   populateCurrencyOptions();
   syncInputsFromState();
