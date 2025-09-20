@@ -1,0 +1,10 @@
+{
+  "name": "azure-databricks-pricing",
+  "version": "0.1.0",
+  "description": "Azure Databricks Pricing Simulator Orange",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "validate:pricing": "node scripts/validate-pricing.mjs"
+  }
+}
