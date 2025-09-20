@@ -1,0 +1,181 @@
+# Azure Databricks Pricing Simulator Orange
+
+> Azure Databricks の **DBU課金** を前提に、月次コストの概算を素早くシミュレートする軽量な Web アプリです。  
+> **愛称：Orange**（オレンジ）。静的ホスティング（GitHub Pages など）で動作します。
+
+---
+
+## なぜこれを使うのか
+
+- **見積もりの初期あたり**で「だいたいのオーダー感」を掴むため
+- **パラメータの感度**（ノード数・稼働時間・DBU効率など）を素早く比較するため
+- 社内の非エンジニア/調達部門向けに、**根拠と出典が明確**な形で共有するため
+
+> **重要**：DBU は Databricks の**プラットフォーム課金**です。実運用ではこれに **インフラ費用（VM・ストレージ・転送）** が加算されます。本アプリはまず DBU 部分の計算を軸に、インフラ費も扱えるよう段階的に拡張します。
+
+---
+
+## 現時点でできること（v0）
+
+- DBU 単価・DBU 使用量（または時間×係数）を入力し、**月次のプラットフォーム費用**を試算
+- `pricing.json` のレートを読み込み、**出典・発効日**を UI に表示（将来の厳密化に備えた設計）
+- 入力内容はブラウザに一時保存（localStorage）し、**前回の設定を復元**（実装済み or 近日実装）
+- **A/B 比較**や**感度レンジ（±20%）**の表示はロードマップ項目です（下記参照）
+
+---
+
+## 使い方
+
+### 1) ローカルで開く
+- このリポジトリをクローンし、`index.html` をブラウザで開くだけです。
+- もしくは、VS Code 拡張の「Live Server」等で起動しても OK です。
+
+### 2) GitHub Pages で公開（推奨）
+1. リポジトリの **Settings → Pages** を開く
+2. **Build and deployment**: `Deploy from a branch`
+3. **Branch**: `main` の `/ (root)` または `/docs` を選択
+4. 表示された URL がデモ URL となります（README に追記すると便利）
+
+> 参考: スクリーンショットは `docs/screenshot.png` などに配置してください（任意）。
+
+---
+
+## 入力パラメータ（例）
+
+| 項目 | 例 | 説明 |
+|---|---|---|
+| ワークロード | Jobs / All‑Purpose / SQL / DLT / Model Serving / Serverless SQL | 将来はプリセットで切替（v0 は最小入力） |
+| エディション | Standard / Premium など | 単価に影響 |
+| リージョン | japaneast / eastus など | 将来はデータで切替 |
+| DBU 単価 | 0.15 USD/DBU | `pricing.json` から読込 |
+| DBU 消費量 | 1,200 DBU / 月 | 直接入力 or 「時間×係数」で算出 |
+| 稼働時間 | 100 時間 / 月 | オプション（DBU直入力の代替） |
+| インフラ費 | VM/Storage/Egress | v0 では**非表示**、将来拡張で追加 |
+
+> **注**：実務では **アイドル自動終了** や **Auto-Scale (min/max/平均)**、**起動回数/日** が費用に効きます。これらはロードマップで扱います。
+
+---
+
+## 計算ロジック（v0 の考え方）
+
+- **DBU 費用** = `DBU 使用量 × DBU 単価`
+- **インフラ費用** = VM / ストレージ / 転送の積み上げ（*将来*の拡張）
+- **合計** = DBU 費用 + インフラ費用（v0 は DBU 中心）
+
+> 丸めや端数（分課金/秒課金の切上げ等）はユースケースに合わせて**設定可能**にしていきます。
+
+---
+
+## 価格データ：`pricing.json`
+
+### 目的
+- 価格や前提を **コードから分離** し、更新履歴・出典・発効日を持たせます。
+- v0 はシンプル。今後はスキーマを厳密化し、**監査性**を高めます。
+
+### シンプル版サンプル（v0）
+```json
+{
+  "version": "2025-09-20",
+  "currency": "USD",
+  "workloads": [
+    {
+      "cloud": "Azure",
+      "region": "japaneast",
+      "edition": "Premium",
+      "service": "Jobs Compute",
+      "serverless": false,
+      "dbu_rate": 0.15,
+      "source": "https://www.databricks.com/product/azure-pricing",
+      "effective_from": "2025-08-01",
+      "notes": "DBU platform rate only; infra excluded."
+    }
+  ]
+}
+```
+
+### フィールド定義（抜粋）
+| フィールド | 型 | 必須 | 説明 |
+|---|---|:---:|---|
+| `version` | string | ✓ | データの発行日やバージョン。UIに表示 |
+| `currency` | string | ✓ | `"USD"` など |
+| `workloads[].cloud` | string | ✓ | 常に `"Azure"` を想定 |
+| `workloads[].region` | string | ✓ | `"japaneast"` など |
+| `workloads[].edition` | string | ✓ | `"Standard"` / `"Premium"` など |
+| `workloads[].service` | string | ✓ | `"Jobs Compute"` / `"All‑Purpose"` / `"SQL"` / `"DLT"` / `"Model Serving"` 等 |
+| `workloads[].serverless` | boolean | ✓ | Serverless かどうか |
+| `workloads[].dbu_rate` | number | ✓ | 単価（通貨/DBU） |
+| `workloads[].source` | string(URL) | ✓ | 公開情報の URL（一次情報） |
+| `workloads[].effective_from` | string(date) | ✓ | レートの適用開始日 |
+| `workloads[].notes` | string |  | 任意のメモ |
+
+> 将来は `infra.vm_prices[]` や `storage` を追加し、**VM/Storage/転送**の積み上げも同一 JSON で扱える設計にします。
+
+---
+
+## ディレクトリ構成（提案）
+
+```
+.
+├─ index.html
+├─ style.css
+├─ main.js                 # UI とイベント
+├─ pricing.json            # レート定義（上記の v0 サンプル）
+├─ /docs                   # GitHub Pages 用（任意）
+│   └─ screenshot.png
+├─ /schema                 # 将来: JSON Schema (Ajv 用)
+│   └─ pricing.schema.json
+├─ /src                    # 将来: TS 化して分割
+│   ├─ calc.ts            # 計算（純関数）
+│   ├─ format.ts          # 通貨/丸め/表記
+│   └─ ui.ts              # 描画/バインド
+└─ /tests                  # 将来: ユニットテスト（Jest など）
+    └─ calc.spec.ts
+```
+
+---
+
+## 開発メモ
+
+- **まずは v0 を公開**（GitHub Pages）→ フィードバックを反映
+- **計算ロジックを関数化**し、将来の TS 化・テスト容易性を確保
+- **丸め/端数の扱い**と **A/B 比較** を最初の拡張ターゲットに
+- `pricing.json` の **`source` と `effective_from` を UI 表示**（信頼性が上がります）
+
+---
+
+## ロードマップ
+
+- **短期**：A/B 比較、感度（±20%）表示、通貨/為替入力、ツールチップに出典表示
+- **中期**：Auto-Scale/Idle/起動回数のモデリング、Serverless/SQL/Model Serving/DLT のプリセット化、PDF/CSV エクスポート
+- **長期**：インフラ積み上げ（VM/Storage/転送）、予約（Prepurchase/DBCU）試算、実測（Cost Management/Usage CSV）取り込み、モンテカルロで分布出力
+
+---
+
+## 既知の制約 / 注意事項
+
+- 本ツールは **試算支援** を目的とした OSS です。**正確な価格は公式情報と請求実績** をご確認ください。
+- 地域・エディション・ワークロード・キャンペーン等により **レートは変動** します。
+- 本プロジェクトは **非公式** であり、Databricks/Microsoft とは関係ありません。
+
+---
+
+## ライセンス
+
+MIT License © Contributors
+
+---
+
+## 貢献（Contributing）
+
+Issue/PR 歓迎です。次の観点は特に助かります：
+- `pricing.json` のデータ更新（出典 URL / 発効日の明記）
+- 計算ロジックのテスト追加・端数処理の精緻化
+- UI/UX の改善（アクセシビリティ/ショートカット/比較体験）
+- スクリーンショット/ドキュメントの拡充
+
+---
+
+### 連絡
+
+アイデア・改善案は Issue へどうぞ。実務利用での気づき（過小/過大見積になる典型）を共有いただけると品質向上に直結します。
+
