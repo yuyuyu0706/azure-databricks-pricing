@@ -97,6 +97,7 @@ const elements = {
   scenarioName: document.getElementById('scenarioName'),
   saveScenario: document.getElementById('saveScenario'),
   saveVariantScenario: document.getElementById('saveVariantScenario'),
+  copyVariantInline: document.getElementById('copyVariantInline'),
   loadScenario: document.getElementById('loadScenario'),
   deleteScenario: document.getElementById('deleteScenario'),
   currentScenario: document.getElementById('currentScenario'),
@@ -408,6 +409,7 @@ function setUiDisabled(disabled) {
     elements.scenarioName,
     elements.saveScenario,
     elements.saveVariantScenario,
+    elements.copyVariantInline,
     elements.loadScenario,
     elements.deleteScenario,
     elements.copyVariant,
@@ -1282,6 +1284,9 @@ function bindEvents() {
   elements.deleteScenario.addEventListener('click', handleDeleteScenario);
 
   elements.copyVariant.addEventListener('click', handleCopyVariant);
+  if (elements.copyVariantInline) {
+    elements.copyVariantInline.addEventListener('click', handleCopyVariant);
+  }
 
   elements.clearVariant.addEventListener('click', () => {
     uiState.variant = null;
