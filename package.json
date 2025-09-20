@@ -4,7 +4,7 @@
   "description": "Azure Databricks Pricing Simulator Orange",
   "type": "module",
   "scripts": {
-    "test": "node --test",
+    "test": "node --test tests/*.js",
     "validate:pricing": "node scripts/validate-pricing.mjs"
   }
 }
