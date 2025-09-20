@@ -134,6 +134,31 @@ function deepClone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function ensureRateDefaults(state) {
+  if (!state) return;
+  if (!state.rateQuery || typeof state.rateQuery !== 'object') {
+    state.rateQuery = { ...DEFAULT_STATE.rateQuery };
+  }
+
+  const defaults = pricingTable?.defaults || {};
+
+  if (!state.rateQuery.cloud) {
+    state.rateQuery.cloud =
+      defaults.cloud?.key ||
+      state.rateQuery.cloud ||
+      DEFAULT_STATE.rateQuery.cloud ||
+      'Azure';
+  }
+
+  if (!state.rateQuery.region && defaults.region?.key) {
+    state.rateQuery.region = defaults.region.key;
+  }
+
+  if (!state.rateQuery.edition && defaults.edition?.key) {
+    state.rateQuery.edition = defaults.edition.key;
+  }
+}
+
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
@@ -1075,6 +1100,10 @@ function runBaseRender() {
   if (!pricingTable) {
     return;
   }
+  ensureRateDefaults(uiState);
+  if (uiState.variant) {
+    ensureRateDefaults(uiState.variant);
+  }
   updateSelectors();
   syncInputsFromState();
   syncTheme();
@@ -1366,6 +1395,8 @@ function cloneScenarioState(source, fallback = DEFAULT_STATE) {
     clone.createdAt = createdAt;
   }
 
+  ensureRateDefaults(clone);
+
   return clone;
 }
 
@@ -1395,12 +1426,14 @@ function handleSaveScenario() {
 }
 
 function handleCopyVariant() {
-  const validation = evaluateStateSnapshot(uiState);
+  const snapshot = cloneScenarioState(uiState);
+  ensureRateDefaults(snapshot);
+  const validation = evaluateStateSnapshot(snapshot);
   if (!validation.valid) {
     setBanner('variant', 'error', t('banner.error.variant_copy'));
     return;
   }
-  uiState.variant = cloneScenarioState(uiState);
+  uiState.variant = snapshot;
   uiState.variant.name = uiState.scenario?.name || t('results.base');
   uiState.variant.createdAt = new Date().toISOString();
   setBanner('variant', 'success', t('banner.success.variant_copied'));
@@ -1584,6 +1617,7 @@ function applyScenarioToBase(entry) {
     rounding: { ...uiState.rounding, ...payload.rounding },
     sensitivity: { ...uiState.sensitivity, ...payload.sensitivity }
   };
+  ensureRateDefaults(uiState);
   uiState.scenario = { name: entry.name, createdAt: entry.createdAt };
   closeModal(elements.scenarioModal);
   setBanner('scenario', 'info', t('banner.info.base_loaded'));
@@ -1596,6 +1630,7 @@ function applyScenarioToVariant(entry) {
   uiState.variant = cloneScenarioState(entry.payload, uiState);
   uiState.variant.name = entry.name;
   uiState.variant.createdAt = entry.createdAt;
+  ensureRateDefaults(uiState.variant);
   closeModal(elements.scenarioModal);
   setBanner('variant', 'info', t('banner.info.variant_loaded'));
   runBaseRender();
@@ -1652,6 +1687,10 @@ function hydrateState(saved) {
   uiState.theme = saved.theme || uiState.theme;
   uiState.scenario = saved.scenario || null;
   uiState.variant = saved.variant ? cloneScenarioState(saved.variant, uiState) : null;
+  ensureRateDefaults(uiState);
+  if (uiState.variant) {
+    ensureRateDefaults(uiState.variant);
+  }
 }
 
 async function initializeApp() {
@@ -1686,6 +1725,10 @@ async function initializeApp() {
     }
     if (pricingIssues.length > 0) {
       setBanner('pricing-issues', 'warning', summarizeIssues(pricingIssues));
+    }
+    ensureRateDefaults(uiState);
+    if (uiState.variant) {
+      ensureRateDefaults(uiState.variant);
     }
     populateCurrencyOptions();
     clearSkeleton();
