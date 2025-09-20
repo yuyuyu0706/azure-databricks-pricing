@@ -3,40 +3,63 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Azure Databricks pricing Orange</title>
+  <title>Azure Databricks Pricing Orange</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <div class="logo">O</div>
     <div>
-      <h1>Azure Databricks pricing Orange</h1>
-      <p>外部 JSON から料金データを読み込むサンプル</p>
+      <h1>Azure Databricks Pricing Orange</h1>
+      <p>DBU プラットフォーム費用の概算を正規化データから算出します。</p>
+      <div class="pricing-meta" id="pricingMeta">
+        <span class="badge" id="pricingVersion">version --</span>
+        <span class="badge" id="pricingCurrency">currency --</span>
+      </div>
     </div>
   </header>
 
   <main>
+    <div id="bannerContainer"></div>
+
     <section class="card" aria-labelledby="calcTitle">
       <h2 id="calcTitle">見積条件</h2>
+
       <div class="form-row" style="margin-top:12px;">
         <div class="col">
-          <label for="workload">ワークロード</label>
-          <select id="workload"></select>
+          <label for="serviceSelect">サービス</label>
+          <select id="serviceSelect"></select>
         </div>
-
         <div class="col">
-          <label for="instanceType">インスタンスタイプ</label>
-          <select id="instanceType"></select>
+          <label for="editionSelect">エディション</label>
+          <select id="editionSelect"></select>
         </div>
-
         <div class="col">
-          <label for="clusterSize">クラスター サイズ（ノード数）</label>
-          <select id="clusterSize"></select>
+          <label for="regionSelect">リージョン</label>
+          <select id="regionSelect"></select>
         </div>
-
         <div class="col">
-          <label for="hours">処理時間（時間）</label>
-          <input id="hours" type="number" min="0" step="0.25" value="1" />
+          <label for="serverlessSelect">Serverless</label>
+          <select id="serverlessSelect"></select>
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-top:12px;">
+        <div class="col">
+          <label for="dbuInput">月間 DBU 消費量</label>
+          <input id="dbuInput" type="number" min="0" step="1" value="1000" />
+        </div>
+        <div class="col">
+          <label>選択中の DBU 単価</label>
+          <div class="metric" id="selectedRate">-- USD/DBU</div>
+        </div>
+        <div class="col">
+          <label>適用開始日</label>
+          <div class="metric" id="effectiveDate">--</div>
+        </div>
+        <div class="col">
+          <label>出典</label>
+          <div class="metric" id="sourceLink">--</div>
         </div>
       </div>
 
@@ -48,33 +71,30 @@
       <div class="card" style="margin-top:14px;">
         <div class="result">
           <div>
-            <div class="price" id="totalPrice">¥0</div>
+            <div class="price" id="totalPrice">$0.00</div>
             <div class="breakdown" id="breakdownText">-- 内訳</div>
-          </div>
-          <div style="min-width:220px;">
-            <label>想定リージョン</label>
-            <select id="region"></select>
           </div>
         </div>
       </div>
 
       <p style="margin-top:12px;font-size:13px;color:var(--muted);">
-        ※このツールは簡易見積もりです。正確な料金は Azure ポータルの料金ページおよび契約条件に基づきます。
+        ※DBU は Databricks のプラットフォーム課金です。VM やストレージ等のインフラ費用は別途加算されます。
       </p>
     </section>
 
     <section class="card">
-      <h2>計算式（簡易モデル）</h2>
+      <h2>計算式（DBU 部分）</h2>
       <p class="breakdown">
-        $$Total = (DBU\_rate \times DBU\_count + VM\_hourly\_rate \times nodes) \times hours$$
+        $$Total = DBU\_rate \times DBU\_usage$$
       </p>
+      <p class="breakdown" id="recordNotes"></p>
     </section>
   </main>
 
   <footer>
-    参考: Azure Databricks の料金（概算）— 実際の料金は公式ページを確認してください。
+    出典と適用開始日は pricing.json に記載の一次情報を参照しています。
   </footer>
 
-  <script src="main.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>

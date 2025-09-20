@@ -1,58 +1,104 @@
 {
+  "version": "2024-09-20",
   "currency": "USD",
-  "exchange": {
-    "USDJPY": 150
-  },
-  "workloads": {
-    "all-purpose": {
-      "label": "All-purpose（対話型）",
-      "dbu_rates": {
-        "Standard_DS3_v2": 0.15,
-        "Standard_DS4_v2": 0.28,
-        "Standard_DS5_v2": 0.50
-      }
+  "notes": "DBU platform rates only. Infrastructure (VM/Storage/Egress) to be modelled separately.",
+  "workloads": [
+    {
+      "cloud": "Azure",
+      "region": "japaneast",
+      "edition": "Premium",
+      "service": "Jobs Compute",
+      "serverless": false,
+      "dbu_rate": 0.23,
+      "source": "https://www.databricks.com/product/azure-pricing",
+      "effective_from": "2024-08-01",
+      "notes": "Estimated list rate for Premium Jobs in Japan East."
     },
-    "job": {
-      "label": "Job（バッチ）",
-      "dbu_rates": {
-        "Standard_DS3_v2": 0.11,
-        "Standard_DS4_v2": 0.20,
-        "Standard_DS5_v2": 0.36
-      }
+    {
+      "cloud": "Azure",
+      "region": "eastus",
+      "edition": "Premium",
+      "service": "Jobs Compute",
+      "serverless": false,
+      "dbu_rate": 0.20,
+      "source": "https://www.databricks.com/product/azure-pricing",
+      "effective_from": "2024-08-01",
+      "notes": "Reference workload for East US."
     },
-    "sql": {
-      "label": "SQL（クエリ）",
-      "dbu_rates": {
-        "Standard_DS3_v2": 0.09,
-        "Standard_DS4_v2": 0.16,
-        "Standard_DS5_v2": 0.30
-      }
+    {
+      "cloud": "Azure",
+      "region": "japaneast",
+      "edition": "Premium",
+      "service": "All-Purpose Compute",
+      "serverless": false,
+      "dbu_rate": 0.30,
+      "source": "https://www.databricks.com/product/azure-pricing",
+      "effective_from": "2024-08-01",
+      "notes": "Interactive cluster example."
+    },
+    {
+      "cloud": "Azure",
+      "region": "eastus",
+      "edition": "Premium",
+      "service": "All-Purpose Compute",
+      "serverless": false,
+      "dbu_rate": 0.27,
+      "source": "https://www.databricks.com/product/azure-pricing",
+      "effective_from": "2024-08-01"
+    },
+    {
+      "cloud": "Azure",
+      "region": "japaneast",
+      "edition": "Premium",
+      "service": "Delta Live Tables",
+      "serverless": false,
+      "dbu_rate": 0.35,
+      "source": "https://www.databricks.com/product/azure-pricing",
+      "effective_from": "2024-08-01",
+      "notes": "Pipeline edition cost"
+    },
+    {
+      "cloud": "Azure",
+      "region": "eastus",
+      "edition": "Premium",
+      "service": "Serverless SQL",
+      "serverless": true,
+      "dbu_rate": 0.44,
+      "source": "https://www.databricks.com/product/azure-databricks-serverless-sql",
+      "effective_from": "2024-07-15",
+      "notes": "Serverless SQL baseline."
+    },
+    {
+      "cloud": "Azure",
+      "region": "westeurope",
+      "edition": "Premium",
+      "service": "Serverless SQL",
+      "serverless": true,
+      "dbu_rate": 0.46,
+      "source": "https://www.databricks.com/product/azure-databricks-serverless-sql",
+      "effective_from": "2024-07-15"
+    },
+    {
+      "cloud": "Azure",
+      "region": "eastus",
+      "edition": "Standard",
+      "service": "Jobs Compute",
+      "serverless": false,
+      "dbu_rate": 0.16,
+      "source": "https://www.databricks.com/product/azure-pricing",
+      "effective_from": "2024-08-01",
+      "notes": "Standard edition discounted rate."
+    },
+    {
+      "cloud": "Azure",
+      "region": "eastus",
+      "edition": "Premium",
+      "service": "Model Serving",
+      "serverless": true,
+      "dbu_rate": 0.65,
+      "source": "https://www.databricks.com/product/machine-learning/model-serving",
+      "effective_from": "2024-09-01",
+      "notes": "Preview guidance for managed serving."
     }
-  },
-  "instances": {
-    "Standard_DS3_v2": {
-      "label": "Standard_DS3_v2",
-      "vm_rate": 0.40,
-      "dbu_per_node": 4
-    },
-    "Standard_DS4_v2": {
-      "label": "Standard_DS4_v2",
-      "vm_rate": 0.80,
-      "dbu_per_node": 8
-    },
-    "Standard_DS5_v2": {
-      "label": "Standard_DS5_v2",
-      "vm_rate": 1.60,
-      "dbu_per_node": 16
-    }
-  },
-  "clusters": {
-    "small": { "label": "Small", "nodes": 2 },
-    "medium": { "label": "Medium", "nodes": 4 },
-    "large": { "label": "Large", "nodes": 8 }
-  },
-  "regions": {
-    "jp-east": { "label": "Japan East", "multiplier": 1.0 },
-    "eastus": { "label": "East US", "multiplier": 0.95 }
-  }
+  ]
 }
