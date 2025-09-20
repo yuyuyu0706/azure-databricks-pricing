@@ -382,6 +382,7 @@ function setUiDisabled(disabled) {
     elements.themeToggle,
     elements.scenarioName,
     elements.saveScenario,
+    elements.saveVariantScenario,
     elements.loadScenario,
     elements.deleteScenario,
     elements.copyVariant,
@@ -629,6 +630,11 @@ function validateState(state, numeric) {
 
   const valid = errors.size === 0;
   return { valid, errors, numeric };
+}
+
+function evaluateStateSnapshot(state) {
+  const numeric = parseNumericState(state);
+  return validateState(state, numeric);
 }
 
 function applyValidation(validation) {
@@ -1246,13 +1252,7 @@ function bindEvents() {
   });
   elements.deleteScenario.addEventListener('click', handleDeleteScenario);
 
-  elements.copyVariant.addEventListener('click', () => {
-    uiState.variant = cloneScenarioState(uiState);
-    uiState.variant.name = uiState.scenario?.name || t('results.base');
-    setBanner('variant', 'success', t('banner.success.variant_copied'));
-    runBaseRender();
-    saveLastState();
-  });
+  elements.copyVariant.addEventListener('click', handleCopyVariant);
 
   elements.clearVariant.addEventListener('click', () => {
     uiState.variant = null;
@@ -1394,6 +1394,20 @@ function handleSaveScenario() {
   saveLastState();
 }
 
+function handleCopyVariant() {
+  const validation = evaluateStateSnapshot(uiState);
+  if (!validation.valid) {
+    setBanner('variant', 'error', t('banner.error.variant_copy'));
+    return;
+  }
+  uiState.variant = cloneScenarioState(uiState);
+  uiState.variant.name = uiState.scenario?.name || t('results.base');
+  uiState.variant.createdAt = new Date().toISOString();
+  setBanner('variant', 'success', t('banner.success.variant_copied'));
+  runBaseRender();
+  saveLastState();
+}
+
 function handleSaveVariantScenario() {
   const name = elements.scenarioName.value.trim();
   if (!name) {
@@ -1401,7 +1415,12 @@ function handleSaveVariantScenario() {
     return;
   }
   if (!uiState.variant) {
-    setBanner('scenario', 'error', t('banner.error.variant_missing'));
+    setBanner('variant', 'error', t('banner.error.variant_missing'));
+    return;
+  }
+  const variantValidation = evaluateStateSnapshot(uiState.variant);
+  if (!variantValidation.valid) {
+    setBanner('variant', 'error', t('banner.error.variant_invalid'));
     return;
   }
   const store = { ...scenarioStore };
@@ -1418,7 +1437,11 @@ function handleSaveVariantScenario() {
   saveScenarioStore(store);
   uiState.variant.name = entry.name;
   uiState.variant.createdAt = entry.createdAt;
-  setBanner('scenario', 'success', t('banner.success.variant_saved'));
+  const scenarioBanner = banners.get('scenario');
+  if (scenarioBanner?.type === 'error') {
+    setBanner('scenario', null, null);
+  }
+  setBanner('variant', 'success', t('banner.success.variant_saved'));
   renderScenarioList();
   runBaseRender();
   saveLastState();
