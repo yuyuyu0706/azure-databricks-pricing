@@ -381,6 +381,31 @@ body {
   color:var(--text-muted);
 }
 
+.field-combo {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.field-combo .form-control {
+  flex:1 1 auto;
+}
+
+.hours-preset-select {
+  flex:0 0 auto;
+  min-width:140px;
+}
+
+@media (max-width:600px) {
+  .field-combo {
+    flex-wrap:wrap;
+  }
+
+  .hours-preset-select {
+    flex:1 1 160px;
+  }
+}
+
 .form-control {
   border-radius:var(--radius-md);
   border:1px solid var(--border);

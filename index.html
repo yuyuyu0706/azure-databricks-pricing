@@ -73,6 +73,21 @@
                 <select id="serverlessSelect" class="form-control" data-field="serverless" aria-describedby="serverlessHint"></select>
                 <span class="field-hint" id="serverlessHint"></span>
               </label>
+              <label class="form-field" for="rateHoursPerMonth">
+                <span class="field-label" data-i18n="input.hours_per_month"></span>
+                <div class="field-combo">
+                  <input id="rateHoursPerMonth" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="hours_per_month" />
+                  <select id="hoursPresetSelect" class="form-control hours-preset-select">
+                    <option value="" data-i18n="rates.hours_preset.placeholder"></option>
+                    <option value="24" data-i18n="rates.hours_preset.1d"></option>
+                    <option value="168" data-i18n="rates.hours_preset.1w"></option>
+                    <option value="336" data-i18n="rates.hours_preset.2w"></option>
+                    <option value="504" data-i18n="rates.hours_preset.3w"></option>
+                    <option value="720" data-i18n="rates.hours_preset.1m"></option>
+                  </select>
+                </div>
+                <span class="field-error" data-field-error="hours_per_month"></span>
+              </label>
               </div>
               <div class="rate-meta badge-subtext" id="rateMeta" aria-live="polite" hidden>
                 <div class="rate-meta-item">
