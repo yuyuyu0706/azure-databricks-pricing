@@ -1,7 +1,7 @@
 import { compileSchema, formatErrors } from './lib/json-schema-validator.js';
 import { detectDuplicateWorkloads } from './lib/workload-utils.js';
 
-const PRICING_URL = 'pricing.json';
+const PRICING_URL = './pricing.json';
 const SCHEMA_URL = 'schema/pricing.schema.json';
 const LKG_STORAGE_KEY = 'orange:lastKnownGoodPricing';
 const LEGACY_SOURCE_URL = 'https://www.databricks.com/product/azure-databricks-pricing';

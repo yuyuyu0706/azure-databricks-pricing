@@ -153,6 +153,22 @@ body {
   font-variant-numeric:tabular-nums;
 }
 
+.rate-meta {
+  margin-top:8px;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.rate-meta-item {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+.rate-meta-item time {
+  font-variant-numeric:tabular-nums;
+}
+
 .ghost-button,
 .primary-button,
 .secondary-button {
