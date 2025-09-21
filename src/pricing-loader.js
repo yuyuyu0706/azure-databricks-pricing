@@ -28,7 +28,9 @@ let validatorPromise = null;
 
 async function getValidator() {
   if (!validatorPromise) {
-    validatorPromise = fetch(SCHEMA_URL)
+    // Always bypass caches so schema updates (like new fields) propagate
+    // alongside pricing.json changes.
+    validatorPromise = fetch(SCHEMA_URL, { cache: 'no-cache' })
       .then((response) => {
         if (!response.ok) {
           throw new PricingLoadError(`pricing schema fetch failed: ${response.status}`, [
