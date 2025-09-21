@@ -3,7 +3,9 @@ import { detectDuplicateWorkloads } from './lib/workload-utils.js';
 
 const PRICING_URL = './pricing.json';
 const SCHEMA_URL = 'schema/pricing.schema.json';
-const LKG_STORAGE_KEY = 'orange:lastKnownGoodPricing';
+const LKG_DATA_KEY = 'orange:pricing:lkg:data';
+const LKG_META_KEY = 'orange:pricing:lkg:meta';
+const LEGACY_LKG_STORAGE_KEY = 'orange:lastKnownGoodPricing';
 const LEGACY_SOURCE_URL = 'https://www.databricks.com/product/azure-databricks-pricing';
 
 class PricingValidationError extends Error {
@@ -121,38 +123,111 @@ function isObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function validateBasicPricingShape(data) {
+  const issues = [];
+  if (!isObject(data)) {
+    issues.push('pricing.json payload is not an object');
+    return issues;
+  }
+  if (!data.version || typeof data.version !== 'string') {
+    issues.push('missing version');
+  }
+  if (!data.currency || typeof data.currency !== 'string') {
+    issues.push('missing currency');
+  }
+  if (!Array.isArray(data.workloads) || data.workloads.length === 0) {
+    issues.push('workloads must be a non-empty array');
+  }
+  return issues;
+}
+
 function storeLastKnownGood(payload) {
+  if (!payload || !payload.data) {
+    return;
+  }
+  const shapeIssues = validateBasicPricingShape(payload.data);
+  if (shapeIssues.length > 0) {
+    console.warn('[Orange] Skipping last known good save due to invalid payload shape', shapeIssues);
+    return;
+  }
   try {
-    const record = {
-      storedAt: new Date().toISOString(),
-      data: payload.data,
-      metadata: payload.metadata
+    window.localStorage.setItem(LKG_DATA_KEY, JSON.stringify(payload.data));
+    const metadata = {
+      version: payload.metadata?.version || payload.data.version,
+      currency: payload.metadata?.currency || payload.data.currency,
+      savedAtISO: new Date().toISOString()
     };
-    window.localStorage.setItem(LKG_STORAGE_KEY, JSON.stringify(record));
+    if (payload.metadata?.usedLegacyConversion) {
+      metadata.usedLegacyConversion = true;
+    }
+    window.localStorage.setItem(LKG_META_KEY, JSON.stringify(metadata));
+    if (window.localStorage.getItem(LEGACY_LKG_STORAGE_KEY)) {
+      window.localStorage.removeItem(LEGACY_LKG_STORAGE_KEY);
+    }
   } catch (error) {
-    console.warn('Failed to persist last known good pricing.json to localStorage', error);
+    console.warn('[Orange] Failed to persist last known good pricing.json to localStorage', error);
   }
 }
 
 function readLastKnownGood() {
   try {
-    const raw = window.localStorage.getItem(LKG_STORAGE_KEY);
-    if (!raw) {
+    let dataRecord = null;
+    const rawData = window.localStorage.getItem(LKG_DATA_KEY);
+    if (rawData) {
+      dataRecord = JSON.parse(rawData);
+    } else {
+      const legacyRaw = window.localStorage.getItem(LEGACY_LKG_STORAGE_KEY);
+      if (legacyRaw) {
+        const parsedLegacy = JSON.parse(legacyRaw);
+        dataRecord = parsedLegacy?.data || null;
+      }
+    }
+
+    if (!dataRecord) {
       return null;
     }
-    const parsed = JSON.parse(raw);
-    if (!parsed || !parsed.data) {
+
+    const shapeIssues = validateBasicPricingShape(dataRecord);
+    if (shapeIssues.length > 0) {
+      console.warn('[Orange] Ignoring stored last known good due to invalid payload shape', shapeIssues);
       return null;
     }
-    return parsed;
+
+    let metadataRecord = null;
+    const rawMeta = window.localStorage.getItem(LKG_META_KEY);
+    if (rawMeta) {
+      metadataRecord = JSON.parse(rawMeta);
+    }
+
+    if (!metadataRecord && window.localStorage.getItem(LEGACY_LKG_STORAGE_KEY)) {
+      const legacyRaw = window.localStorage.getItem(LEGACY_LKG_STORAGE_KEY);
+      if (legacyRaw) {
+        const parsedLegacy = JSON.parse(legacyRaw);
+        metadataRecord = parsedLegacy?.metadata || null;
+      }
+    }
+
+    const metadata = metadataRecord
+      ? {
+          version: metadataRecord.version,
+          currency: metadataRecord.currency,
+          savedAtISO: metadataRecord.savedAtISO || metadataRecord.storedAt,
+          usedLegacyConversion: Boolean(metadataRecord.usedLegacyConversion)
+        }
+      : {};
+
+    return {
+      data: dataRecord,
+      metadata
+    };
   } catch (error) {
-    console.warn('Failed to read last known good pricing.json from localStorage', error);
+    console.warn('[Orange] Failed to read last known good pricing.json from localStorage', error);
     return null;
   }
 }
 
 async function fetchRemotePricing() {
-  const response = await fetch(PRICING_URL, { cache: 'no-store' });
+  const response = await fetch(PRICING_URL, { cache: 'no-cache' });
   if (!response.ok) {
     throw new PricingLoadError(`pricing.json fetch failed: ${response.status}`, [
       `pricing.json HTTP status ${response.status}`
@@ -168,6 +243,11 @@ export async function loadPricingData() {
 
   try {
     let rawData = await fetchRemotePricing();
+    const shapeIssues = validateBasicPricingShape(rawData);
+    if (shapeIssues.length > 0) {
+      issues = shapeIssues;
+      throw new PricingValidationError('pricing.json failed basic validation', issues);
+    }
     if (isLegacyFormat(rawData)) {
       rawData = convertLegacyPricing(rawData);
       metadata.usedLegacyConversion = true;
@@ -189,7 +269,7 @@ export async function loadPricingData() {
       ...metadata,
       version: rawData.version,
       currency: rawData.currency,
-      storedAt: new Date().toISOString()
+      savedAtISO: new Date().toISOString()
     };
 
     storeLastKnownGood({ data: rawData, metadata });
@@ -205,6 +285,8 @@ export async function loadPricingData() {
     } else {
       issues = [error.message];
     }
+
+    console.warn('[Orange] pricing load failed:', error);
 
     const cached = readLastKnownGood();
     if (cached && cached.data) {
