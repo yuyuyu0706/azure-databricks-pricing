@@ -1368,6 +1368,7 @@ function syncInputsFromState() {
       elements.hoursPresetSelect.value = normalized;
     } else {
       elements.hoursPresetSelect.value = '';
+      elements.hoursPresetSelect.selectedIndex = -1;
     }
   }
   if (elements.presetSelect) {
