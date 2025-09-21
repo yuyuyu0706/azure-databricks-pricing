@@ -9,6 +9,7 @@
  * @property {string} region
  * @property {string} edition
  * @property {string} service
+ * @property {string} vm_size
  * @property {boolean} serverless
  * @property {number} dbu_rate
  * @property {string} source
@@ -29,6 +30,7 @@
  * @property {string} region
  * @property {string} edition
  * @property {string} service
+ * @property {string} vm_size
  * @property {boolean} serverless
  */
 
@@ -150,12 +152,16 @@ export function selectRate(table, query) {
   if (!table || !Array.isArray(table.workloads)) {
     return null;
   }
+  if (!query) {
+    return null;
+  }
   return (
     table.workloads.find((record) =>
       record.cloud === query.cloud &&
       record.region === query.region &&
       record.edition === query.edition &&
       record.service === query.service &&
+      record.vm_size === query.vm_size &&
       record.serverless === query.serverless
     ) || null
   );

@@ -15,6 +15,7 @@ const DEFAULT_STATE = {
     service: '',
     edition: '',
     region: '',
+    vm_size: '',
     serverless: ''
   },
   inputMode: 'direct',
@@ -83,6 +84,8 @@ const elements = {
   rateMetaEffective: document.getElementById('rateMetaEffective'),
   serviceSelect: document.getElementById('serviceSelect'),
   serviceHint: document.getElementById('serviceHint'),
+  vmSizeSelect: document.getElementById('vmSizeSelect'),
+  vmSizeHint: document.getElementById('vmSizeHint'),
   serverlessSelect: document.getElementById('serverlessSelect'),
   serverlessHint: document.getElementById('serverlessHint'),
   presetSelect: document.getElementById('presetSelect'),
@@ -181,6 +184,10 @@ function ensureRateDefaults(state) {
 
   if (!state.rateQuery.edition && defaults.edition?.key) {
     state.rateQuery.edition = defaults.edition.key;
+  }
+
+  if (typeof state.rateQuery.vm_size !== 'string') {
+    state.rateQuery.vm_size = DEFAULT_STATE.rateQuery.vm_size;
   }
 }
 
@@ -615,7 +622,7 @@ function computeOptions(skipField) {
   if (!pricingTable?.workloads) {
     return [];
   }
-  const fields = ['service', 'edition', 'region', 'serverless'];
+  const fields = ['service', 'edition', 'region', 'serverless', 'vm_size'];
   const options = new Set();
   pricingTable.workloads.forEach((record) => {
     const matches = fields.every((field) => {
@@ -665,6 +672,9 @@ function updateSelectors() {
 
   const serverlessOptions = computeOptions('serverless').sort((a, b) => String(a).localeCompare(String(b)));
   syncSelect(elements.serverlessSelect, serverlessOptions, (value) => (value === 'true' ? 'Serverless' : 'Dedicated'));
+
+  const vmSizeOptions = computeOptions('vm_size').sort();
+  syncSelect(elements.vmSizeSelect, vmSizeOptions);
 }
 
 function parseNumber(value) {
@@ -705,6 +715,9 @@ function validateState(state, numeric) {
   }
   if (!state.rateQuery.serverless) {
     errors.set('serverless', t('error.selection_required'));
+  }
+  if (!state.rateQuery.vm_size) {
+    errors.set('vm_size', t('error.selection_required'));
   }
 
   if (state.inputMode === 'direct') {
@@ -864,10 +877,12 @@ function applyValidation(validation) {
 
   const selectorMap = new Map([
     ['service', elements.serviceSelect],
+    ['vm_size', elements.vmSizeSelect],
     ['serverless', elements.serverlessSelect]
   ]);
   const hintMap = new Map([
     ['service', elements.serviceHint],
+    ['vm_size', elements.vmSizeHint],
     ['serverless', elements.serverlessHint]
   ]);
   selectorMap.forEach((element, field) => {
@@ -894,6 +909,7 @@ function buildScenario(state, numeric) {
       region: state.rateQuery.region,
       edition: state.rateQuery.edition,
       service: state.rateQuery.service,
+      vm_size: state.rateQuery.vm_size,
       serverless: state.rateQuery.serverless === 'true'
     },
     dbu: {}
@@ -1392,6 +1408,7 @@ function runBaseRender() {
     region: uiState.rateQuery.region,
     edition: uiState.rateQuery.edition,
     service: uiState.rateQuery.service,
+    vm_size: uiState.rateQuery.vm_size,
     serverless: serverlessSelected
   });
 
@@ -1471,7 +1488,7 @@ function debounce(fn, wait = 150) {
 function bindEvents() {
   elements.inputControls.forEach((element) => setInputListener(element));
 
-  [elements.serviceSelect, elements.serverlessSelect].forEach((select) => {
+  [elements.serviceSelect, elements.serverlessSelect, elements.vmSizeSelect].forEach((select) => {
     if (!select) return;
     select.addEventListener('change', () => {
       uiState.rateQuery[select.dataset.field] = select.value;

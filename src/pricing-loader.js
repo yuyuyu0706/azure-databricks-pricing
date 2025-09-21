@@ -28,7 +28,9 @@ let validatorPromise = null;
 
 async function getValidator() {
   if (!validatorPromise) {
-    validatorPromise = fetch(SCHEMA_URL)
+    // Always bypass caches so schema updates (like new fields) propagate
+    // alongside pricing.json changes.
+    validatorPromise = fetch(SCHEMA_URL, { cache: 'no-cache' })
       .then((response) => {
         if (!response.ok) {
           throw new PricingLoadError(`pricing schema fetch failed: ${response.status}`, [
@@ -81,12 +83,16 @@ function convertLegacyPricing(data) {
       : [];
     for (const [instanceKey, rate] of dbuRates) {
       const serviceName = `${label} / ${instanceKey}`;
+      const vmSize = typeof instanceKey === 'string'
+        ? instanceKey.trim().replace(/\s+/g, '_').replace(/[^A-Za-z0-9_-]/g, '_') || 'legacy_vm'
+        : 'legacy_vm';
       for (const region of regions) {
         workloads.push({
           cloud: 'Azure',
           region: sanitizeRegionKey(region),
           edition: 'Legacy',
           service: serviceName,
+          vm_size: vmSize,
           serverless: false,
           dbu_rate: typeof rate === 'number' && Number.isFinite(rate) ? rate : 0,
           source: LEGACY_SOURCE_URL,
