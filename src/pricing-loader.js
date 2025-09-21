@@ -81,12 +81,16 @@ function convertLegacyPricing(data) {
       : [];
     for (const [instanceKey, rate] of dbuRates) {
       const serviceName = `${label} / ${instanceKey}`;
+      const vmSize = typeof instanceKey === 'string'
+        ? instanceKey.trim().replace(/\s+/g, '_').replace(/[^A-Za-z0-9_-]/g, '_') || 'legacy_vm'
+        : 'legacy_vm';
       for (const region of regions) {
         workloads.push({
           cloud: 'Azure',
           region: sanitizeRegionKey(region),
           edition: 'Legacy',
           service: serviceName,
+          vm_size: vmSize,
           serverless: false,
           dbu_rate: typeof rate === 'number' && Number.isFinite(rate) ? rate : 0,
           source: LEGACY_SOURCE_URL,

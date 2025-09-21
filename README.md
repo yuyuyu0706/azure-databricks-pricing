@@ -85,6 +85,7 @@
       "region": "japaneast",
       "edition": "Premium",
       "service": "Jobs Compute",
+      "vm_size": "Standard_DS3_v2",
       "serverless": false,
       "dbu_rate": 0.15,
       "source": "https://www.databricks.com/product/azure-pricing",
@@ -104,6 +105,7 @@
 | `workloads[].region` | string | ✓ | `"japaneast"` など |
 | `workloads[].edition` | string | ✓ | `"Standard"` / `"Premium"` など |
 | `workloads[].service` | string | ✓ | `"Jobs Compute"` / `"All‑Purpose"` / `"SQL"` / `"DLT"` / `"Model Serving"` 等 |
+| `workloads[].vm_size` | string | ✓ | VM サイズ。例: `"Standard_DS3_v2"` |
 | `workloads[].serverless` | boolean | ✓ | Serverless かどうか |
 | `workloads[].dbu_rate` | number | ✓ | 単価（通貨/DBU） |
 | `workloads[].source` | string(URL) | ✓ | 公開情報の URL（一次情報） |

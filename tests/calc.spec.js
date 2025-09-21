@@ -12,6 +12,7 @@ const samplePricing = {
       region: 'eastus',
       edition: 'Premium',
       service: 'Jobs Compute',
+      vm_size: 'Standard_DS3_v2',
       serverless: false,
       dbu_rate: 0.15,
       source: 'https://example.com',
@@ -27,6 +28,7 @@ test('direct DBU input produces expected DBU cost', () => {
       region: 'eastus',
       edition: 'Premium',
       service: 'Jobs Compute',
+      vm_size: 'Standard_DS3_v2',
       serverless: false
     },
     dbu: {
@@ -117,13 +119,14 @@ test('custom days per month adjusts active hours', () => {
   assert.ok(usage.assumptions.some((item) => item.includes('days_per_month input')));
 });
 
-test('missing rate surfaces warning but does not throw', () => {
+test('mismatched vm_size surfaces warning but does not throw', () => {
   const scenario = {
     rateQuery: {
       cloud: 'Azure',
-      region: 'westus',
+      region: 'eastus',
       edition: 'Premium',
       service: 'Jobs Compute',
+      vm_size: 'Standard_DS5_v2',
       serverless: false
     },
     dbu: {

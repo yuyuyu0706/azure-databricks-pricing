@@ -1,5 +1,5 @@
 export function createWorkloadKey(record) {
-  return [record.cloud, record.region, record.edition, record.service, record.serverless].join('||');
+  return [record.cloud, record.region, record.edition, record.service, record.vm_size, record.serverless].join('||');
 }
 
 export function detectDuplicateWorkloads(workloads = []) {
