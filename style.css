@@ -1,7 +1,7 @@
 :root {
-  --orange:#ff7a00;
-  --orange-dark:#e05f00;
-  --orange-light:#ffe6cc;
+  --orange:#ffb16f;
+  --orange-dark:#ff8f3b;
+  --orange-light:#ffd6b0;
   --bg:#ffffff;
   --bg-muted:#f7f7f7;
   --border:#e4e4e7;
@@ -379,6 +379,31 @@ body {
   gap:6px;
   font-size:13px;
   color:var(--text-muted);
+}
+
+.field-combo {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.field-combo .form-control {
+  flex:1 1 auto;
+}
+
+.hours-preset-select {
+  flex:0 0 auto;
+  min-width:140px;
+}
+
+@media (max-width:600px) {
+  .field-combo {
+    flex-wrap:wrap;
+  }
+
+  .hours-preset-select {
+    flex:1 1 160px;
+  }
 }
 
 .form-control {

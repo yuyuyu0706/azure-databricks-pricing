@@ -8,6 +8,7 @@ const LAST_STATE_KEY = 'orange:last_state';
 const SCENARIOS_KEY = 'orange:scenarios';
 const DEFAULT_CURRENCIES = ['USD', 'EUR', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'SGD', 'INR'];
 const NUMBER_FORMAT = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+const HOURS_PRESET_VALUES = ['24', '168', '336', '504', '720'];
 
 const DEFAULT_STATE = {
   rateQuery: {
@@ -88,6 +89,7 @@ const elements = {
   vmSizeHint: document.getElementById('vmSizeHint'),
   serverlessSelect: document.getElementById('serverlessSelect'),
   serverlessHint: document.getElementById('serverlessHint'),
+  hoursPresetSelect: document.getElementById('hoursPresetSelect'),
   presetSelect: document.getElementById('presetSelect'),
   presetDescription: document.getElementById('presetDescription'),
   modeDirectTab: document.getElementById('modeDirectTab'),
@@ -434,6 +436,7 @@ function setUiDisabled(disabled) {
   const interactive = [
     elements.serviceSelect,
     elements.serverlessSelect,
+    elements.hoursPresetSelect,
     elements.presetSelect,
     ...Array.from(elements.inputControls || []),
     elements.sensitivityToggle,
@@ -856,7 +859,12 @@ function evaluateStateSnapshot(state) {
 function applyValidation(validation) {
   const fieldErrorMap = new Map();
   elements.fieldErrors.forEach((element) => {
-    fieldErrorMap.set(element.dataset.fieldError, element);
+    const field = element.dataset.fieldError;
+    if (!field) return;
+    if (!fieldErrorMap.has(field)) {
+      fieldErrorMap.set(field, []);
+    }
+    fieldErrorMap.get(field).push(element);
   });
 
   elements.inputControls.forEach((element) => {
@@ -864,9 +872,10 @@ function applyValidation(validation) {
     if (!field) return;
     const error = validation.errors.get(field);
     element.classList.toggle('is-invalid', Boolean(error));
-    if (fieldErrorMap.has(field)) {
-      fieldErrorMap.get(field).textContent = error || '';
-    }
+    const targets = fieldErrorMap.get(field) || [];
+    targets.forEach((target) => {
+      target.textContent = error || '';
+    });
   });
 
   [elements.roundingScale].forEach((element) => {
@@ -894,6 +903,11 @@ function applyValidation(validation) {
       hint.textContent = error || '';
     }
   });
+
+  if (elements.hoursPresetSelect) {
+    const hoursError = validation.errors.get('hours_per_month');
+    elements.hoursPresetSelect.classList.toggle('is-invalid', Boolean(hoursError));
+  }
 
   if (!validation.valid) {
     setBanner('input', 'error', t('banner.error.input'));
@@ -1347,6 +1361,16 @@ function syncInputsFromState() {
       element.value = uiState.inputs[field] ?? '';
     }
   });
+  if (elements.hoursPresetSelect) {
+    const rawValue = uiState.inputs.hours_per_month ?? '';
+    const normalized = rawValue === null || rawValue === undefined ? '' : String(rawValue);
+    if (normalized && HOURS_PRESET_VALUES.includes(normalized)) {
+      elements.hoursPresetSelect.value = normalized;
+    } else {
+      elements.hoursPresetSelect.value = '';
+      elements.hoursPresetSelect.selectedIndex = -1;
+    }
+  }
   if (elements.presetSelect) {
     elements.presetSelect.value = uiState.preset || '';
   }
@@ -1497,6 +1521,15 @@ function bindEvents() {
       saveLastState();
     });
   });
+
+  if (elements.hoursPresetSelect) {
+    elements.hoursPresetSelect.addEventListener('change', (event) => {
+      uiState.inputs.hours_per_month = event.target.value;
+      if (!isReady) return;
+      runBaseRender();
+      saveLastState();
+    });
+  }
 
   if (elements.presetSelect) {
     elements.presetSelect.addEventListener('change', (event) => {
