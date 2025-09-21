@@ -2,6 +2,7 @@ import { loadPricingData, summarizeIssues } from './pricing-loader.js';
 import { estimate, selectRate } from './calc.js';
 import { applyTranslations, t } from './i18n.js';
 import { renderDonutChart } from './chart.js';
+import { PRESETS, getPreset } from './presets.js';
 
 const LAST_STATE_KEY = 'orange:last_state';
 const SCENARIOS_KEY = 'orange:scenarios';
@@ -17,6 +18,7 @@ const DEFAULT_STATE = {
     serverless: ''
   },
   inputMode: 'direct',
+  preset: '',
   inputs: {
     dbu_per_month: '',
     cluster_dbu_per_hour: '',
@@ -27,8 +29,12 @@ const DEFAULT_STATE = {
     runs_per_day: '',
     avg_run_hours: '',
     idle_hours_per_run: '',
+    idle_minutes: '',
+    days_per_month: '',
     efficiency_factor: '',
-    dbu_per_node_hour: ''
+    dbu_per_node_hour: '',
+    retry_rate: '',
+    concurrency: ''
   },
   scenario: null,
   variant: null,
@@ -75,6 +81,8 @@ const elements = {
   serviceHint: document.getElementById('serviceHint'),
   serverlessSelect: document.getElementById('serverlessSelect'),
   serverlessHint: document.getElementById('serverlessHint'),
+  presetSelect: document.getElementById('presetSelect'),
+  presetDescription: document.getElementById('presetDescription'),
   modeDirectTab: document.getElementById('modeDirectTab'),
   modeDerivedTab: document.getElementById('modeDerivedTab'),
   directPanel: document.getElementById('directInputs'),
@@ -114,6 +122,10 @@ const elements = {
   deltaTotal: document.getElementById('deltaTotal'),
   deltaBreakdown: document.getElementById('deltaBreakdown'),
   variantDelta: document.getElementById('variantDelta'),
+  baseWarningBadge: document.getElementById('baseWarningBadge'),
+  baseAssumptionBadge: document.getElementById('baseAssumptionBadge'),
+  variantWarningBadge: document.getElementById('variantWarningBadge'),
+  variantAssumptionBadge: document.getElementById('variantAssumptionBadge'),
   sensitivitySummary: document.getElementById('sensitivitySummary'),
   sensitivityMin: document.getElementById('sensitivityMin'),
   sensitivityExpected: document.getElementById('sensitivityExpected'),
@@ -121,7 +133,15 @@ const elements = {
   donutChart: document.getElementById('donutChart'),
   donutLegend: document.getElementById('donutLegend'),
   warningsSection: document.getElementById('warningsSection'),
-  warningList: document.getElementById('warningList'),
+  baseWarningGroup: document.getElementById('baseWarningGroup'),
+  variantWarningGroup: document.getElementById('variantWarningGroup'),
+  baseWarningList: document.getElementById('baseWarningList'),
+  variantWarningList: document.getElementById('variantWarningList'),
+  assumptionsSection: document.getElementById('assumptionsSection'),
+  baseAssumptionGroup: document.getElementById('baseAssumptionGroup'),
+  variantAssumptionGroup: document.getElementById('variantAssumptionGroup'),
+  baseAssumptionList: document.getElementById('baseAssumptionList'),
+  variantAssumptionList: document.getElementById('variantAssumptionList'),
   helpButton: document.getElementById('helpButton'),
   helpModal: document.getElementById('helpModal'),
   scenarioModal: document.getElementById('scenarioModal'),
@@ -393,6 +413,7 @@ function setUiDisabled(disabled) {
   const interactive = [
     elements.serviceSelect,
     elements.serverlessSelect,
+    elements.presetSelect,
     ...Array.from(elements.inputControls || []),
     elements.sensitivityToggle,
     elements.nodesSensitivityRange,
@@ -422,6 +443,55 @@ function setUiDisabled(disabled) {
   });
 }
 
+function renderList(listElement, items) {
+  if (!listElement) return;
+  listElement.innerHTML = '';
+  items.forEach((item) => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    listElement.appendChild(li);
+  });
+}
+
+function updateWarningGroup(groupElement, listElement, items) {
+  if (!groupElement || !listElement) return;
+  if (!items.length) {
+    groupElement.hidden = true;
+    listElement.innerHTML = '';
+    return;
+  }
+  groupElement.hidden = false;
+  renderList(listElement, items);
+}
+
+function updateAssumptionGroup(groupElement, listElement, items) {
+  updateWarningGroup(groupElement, listElement, items);
+}
+
+function updateResultBadges(result, warningBadge, assumptionBadge) {
+  const warningCount = result?.meta?.warnings?.length || 0;
+  if (warningBadge) {
+    if (warningCount > 0) {
+      warningBadge.hidden = false;
+      warningBadge.textContent = t('results.badge.warning', { count: warningCount });
+    } else {
+      warningBadge.hidden = true;
+      warningBadge.textContent = '';
+    }
+  }
+
+  const assumptionCount = result?.meta?.assumptions?.length || 0;
+  if (assumptionBadge) {
+    if (assumptionCount > 0) {
+      assumptionBadge.hidden = false;
+      assumptionBadge.textContent = t('results.badge.assumption', { count: assumptionCount });
+    } else {
+      assumptionBadge.hidden = true;
+      assumptionBadge.textContent = '';
+    }
+  }
+}
+
 function clearSkeleton() {
   const placeholders = [
     elements.baseTotal,
@@ -446,6 +516,66 @@ function clearSkeleton() {
       elements.donutChart.innerHTML = '';
     }
   }
+}
+
+function updatePresetDescription() {
+  if (!elements.presetDescription) return;
+  const preset = getPreset(uiState.preset);
+  if (preset) {
+    elements.presetDescription.textContent = t(preset.descriptionKey);
+  } else {
+    elements.presetDescription.textContent = '';
+  }
+}
+
+function populatePresetSelect() {
+  const select = elements.presetSelect;
+  if (!select) return;
+  const current = uiState.preset || '';
+  select.innerHTML = '';
+  const noneOption = document.createElement('option');
+  noneOption.value = '';
+  noneOption.textContent = t('preset.none');
+  select.appendChild(noneOption);
+  PRESETS.forEach((preset) => {
+    const option = document.createElement('option');
+    option.value = preset.key;
+    option.textContent = t(preset.labelKey);
+    select.appendChild(option);
+  });
+  select.value = current;
+  updatePresetDescription();
+}
+
+function applyPreset(key) {
+  const preset = getPreset(key);
+  uiState.preset = key || '';
+  if (!preset) {
+    updatePresetDescription();
+    if (elements.presetSelect) {
+      elements.presetSelect.value = uiState.preset;
+    }
+    runBaseRender();
+    saveLastState();
+    return;
+  }
+
+  Object.entries(preset.inputs || {}).forEach(([field, value]) => {
+    if (value === null || value === undefined) {
+      uiState.inputs[field] = '';
+    } else {
+      uiState.inputs[field] = String(value);
+    }
+  });
+
+  uiState.inputMode = 'derived';
+  if (elements.presetSelect) {
+    elements.presetSelect.value = preset.key;
+  }
+  updatePresetDescription();
+  syncInputsFromState();
+  runBaseRender();
+  saveLastState();
 }
 
 function populateCurrencyOptions() {
@@ -641,11 +771,43 @@ function validateState(state, numeric) {
     }
   }
 
+  if (state.inputs.idle_minutes !== '') {
+    if (inputs.idle_minutes === null) {
+      errors.set('idle_minutes', t('error.number_required'));
+    } else if (inputs.idle_minutes < 0) {
+      errors.set('idle_minutes', t('error.non_negative'));
+    }
+  }
+
+  if (state.inputs.days_per_month !== '') {
+    if (inputs.days_per_month === null) {
+      errors.set('days_per_month', t('error.number_required'));
+    } else if (inputs.days_per_month < 0) {
+      errors.set('days_per_month', t('error.non_negative'));
+    }
+  }
+
   if (state.inputs.efficiency_factor !== '') {
     if (inputs.efficiency_factor === null) {
       errors.set('efficiency_factor', t('error.number_required'));
-    } else if (inputs.efficiency_factor < 0) {
-      errors.set('efficiency_factor', t('error.non_negative'));
+    } else if (inputs.efficiency_factor < 0.1 || inputs.efficiency_factor > 2) {
+      errors.set('efficiency_factor', t('error.range', { min: '0.1', max: '2.0' }));
+    }
+  }
+
+  if (state.inputs.retry_rate !== '') {
+    if (inputs.retry_rate === null) {
+      errors.set('retry_rate', t('error.number_required'));
+    } else if (inputs.retry_rate < 0) {
+      errors.set('retry_rate', t('error.non_negative'));
+    }
+  }
+
+  if (state.inputs.concurrency !== '') {
+    if (inputs.concurrency === null) {
+      errors.set('concurrency', t('error.number_required'));
+    } else if (inputs.concurrency < 0) {
+      errors.set('concurrency', t('error.non_negative'));
     }
   }
 
@@ -760,8 +922,20 @@ function buildScenario(state, numeric) {
       scenario.dbu.idle_hours_per_run = numeric.inputs.idle_hours_per_run;
     }
   }
+  if (numeric.inputs.idle_minutes !== null) {
+    scenario.dbu.idle_minutes = numeric.inputs.idle_minutes;
+  }
+  if (numeric.inputs.days_per_month !== null) {
+    scenario.dbu.days_per_month = numeric.inputs.days_per_month;
+  }
   if (numeric.inputs.efficiency_factor !== null) {
     scenario.dbu.efficiency_factor = numeric.inputs.efficiency_factor;
+  }
+  if (numeric.inputs.retry_rate !== null) {
+    scenario.dbu.retry_rate = numeric.inputs.retry_rate;
+  }
+  if (numeric.inputs.concurrency !== null) {
+    scenario.dbu.concurrency = numeric.inputs.concurrency;
   }
   return scenario;
 }
@@ -802,6 +976,7 @@ function formatNumber(value) {
 }
 
 function updateBaseResult(result, record) {
+  updateResultBadges(result, elements.baseWarningBadge, elements.baseAssumptionBadge);
   if (!result) {
     elements.baseTotal.textContent = '--';
     elements.baseDbu.textContent = '--';
@@ -870,22 +1045,44 @@ function describeWarnings(result) {
   return result.meta.warnings.map((code) => t(`warning.${code}`));
 }
 
-function updateWarnings(result) {
-  const warnings = describeWarnings(result);
-  if (!warnings.length) {
+function updateWarnings(baseResult, variantResult) {
+  if (!elements.warningsSection) return;
+  const baseWarnings = describeWarnings(baseResult);
+  const variantWarnings = describeWarnings(variantResult);
+  const hasWarnings = baseWarnings.length > 0 || variantWarnings.length > 0;
+
+  if (!hasWarnings) {
     elements.warningsSection.hidden = true;
-    elements.warningList.innerHTML = '';
     collapseCollapsible('warningsSection');
+    updateWarningGroup(elements.baseWarningGroup, elements.baseWarningList, []);
+    updateWarningGroup(elements.variantWarningGroup, elements.variantWarningList, []);
     return;
   }
+
   elements.warningsSection.hidden = false;
   expandCollapsible('warningsSection');
-  elements.warningList.innerHTML = '';
-  warnings.forEach((warning) => {
-    const item = document.createElement('li');
-    item.textContent = warning;
-    elements.warningList.appendChild(item);
-  });
+  updateWarningGroup(elements.baseWarningGroup, elements.baseWarningList, baseWarnings);
+  updateWarningGroup(elements.variantWarningGroup, elements.variantWarningList, variantWarnings);
+}
+
+function updateAssumptions(baseResult, variantResult) {
+  if (!elements.assumptionsSection) return;
+  const baseAssumptions = Array.isArray(baseResult?.meta?.assumptions) ? baseResult.meta.assumptions : [];
+  const variantAssumptions = Array.isArray(variantResult?.meta?.assumptions) ? variantResult.meta.assumptions : [];
+  const hasAssumptions = baseAssumptions.length > 0 || variantAssumptions.length > 0;
+
+  if (!hasAssumptions) {
+    elements.assumptionsSection.hidden = true;
+    collapseCollapsible('assumptionsSection');
+    updateAssumptionGroup(elements.baseAssumptionGroup, elements.baseAssumptionList, []);
+    updateAssumptionGroup(elements.variantAssumptionGroup, elements.variantAssumptionList, []);
+    return;
+  }
+
+  elements.assumptionsSection.hidden = false;
+  expandCollapsible('assumptionsSection');
+  updateAssumptionGroup(elements.baseAssumptionGroup, elements.baseAssumptionList, baseAssumptions);
+  updateAssumptionGroup(elements.variantAssumptionGroup, elements.variantAssumptionList, variantAssumptions);
 }
 
 function updateDonut(result) {
@@ -989,6 +1186,7 @@ function updateSensitivitySummary(baseResult, baseScenario, baseOptions) {
 }
 
 function updateVariantCard(variantResult, baseResult) {
+  updateResultBadges(variantResult, elements.variantWarningBadge, elements.variantAssumptionBadge);
   if (!variantResult) {
     elements.variantTotal.textContent = '--';
     elements.variantDbu.textContent = '--';
@@ -1066,6 +1264,10 @@ function syncInputsFromState() {
       element.value = uiState.inputs[field] ?? '';
     }
   });
+  if (elements.presetSelect) {
+    elements.presetSelect.value = uiState.preset || '';
+  }
+  updatePresetDescription();
   elements.fxRate.value = uiState.currency.fx_rate ?? '';
   if (elements.outputCurrency && uiState.currency.output) {
     elements.outputCurrency.value = uiState.currency.output;
@@ -1118,7 +1320,8 @@ function runBaseRender() {
 
   if (!validation.valid) {
     updateBaseResult(null, null);
-    updateWarnings(null);
+    updateWarnings(null, null);
+    updateAssumptions(null, null);
     updateDonut(null);
     updateSensitivitySummary(null, null, null);
     updateVariantCard(null, null);
@@ -1130,10 +1333,10 @@ function runBaseRender() {
   const result = estimate(scenario, pricingTable, options);
   const record = selectRate(pricingTable, scenario.rateQuery);
   updateBaseResult(result, record);
-  updateWarnings(result);
   updateDonut(result);
   updateSensitivitySummary(result, scenario, options);
 
+  let variantResult = null;
   if (uiState.variant) {
     const variantNumeric = parseNumericState(uiState.variant);
     const variantValidation = validateState(uiState.variant, variantNumeric);
@@ -1147,13 +1350,16 @@ function runBaseRender() {
       }
       const variantScenario = buildScenario(uiState.variant, variantNumeric);
       const variantOptions = buildOptions(uiState.variant, variantNumeric);
-      const variantResult = estimate(variantScenario, pricingTable, variantOptions);
+      variantResult = estimate(variantScenario, pricingTable, variantOptions);
       updateVariantCard(variantResult, result);
     }
   } else {
     setBanner('variant', null, null);
     updateVariantCard(null, result);
   }
+
+  updateWarnings(result, variantResult);
+  updateAssumptions(result, variantResult);
 }
 
 function setInputListener(element) {
@@ -1197,6 +1403,12 @@ function bindEvents() {
       saveLastState();
     });
   });
+
+  if (elements.presetSelect) {
+    elements.presetSelect.addEventListener('change', (event) => {
+      applyPreset(event.target.value);
+    });
+  }
 
   elements.modeDirectTab.addEventListener('click', () => {
     uiState.inputMode = 'direct';
@@ -1376,6 +1588,7 @@ function cloneScenarioState(source, fallback = DEFAULT_STATE) {
   const base = {
     rateQuery: deepClone(safeFallback.rateQuery || DEFAULT_STATE.rateQuery),
     inputMode: safeFallback.inputMode ?? DEFAULT_STATE.inputMode,
+    preset: safeFallback.preset ?? DEFAULT_STATE.preset,
     inputs: deepClone(safeFallback.inputs || DEFAULT_STATE.inputs),
     currency: deepClone(safeFallback.currency || DEFAULT_STATE.currency),
     rounding: deepClone(safeFallback.rounding || DEFAULT_STATE.rounding),
@@ -1385,6 +1598,7 @@ function cloneScenarioState(source, fallback = DEFAULT_STATE) {
   const clone = {
     rateQuery: { ...base.rateQuery, ...(safeSource.rateQuery || {}) },
     inputMode: safeSource.inputMode ?? base.inputMode,
+    preset: safeSource.preset ?? base.preset,
     inputs: { ...base.inputs, ...(safeSource.inputs || {}) },
     currency: { ...base.currency, ...(safeSource.currency || {}) },
     rounding: { ...base.rounding, ...(safeSource.rounding || {}) },
@@ -1685,6 +1899,7 @@ function hydrateState(saved) {
   uiState = deepClone(DEFAULT_STATE);
   uiState.rateQuery = { ...uiState.rateQuery, ...saved.rateQuery };
   uiState.inputMode = saved.inputMode || uiState.inputMode;
+  uiState.preset = saved.preset || uiState.preset;
   uiState.inputs = { ...uiState.inputs, ...saved.inputs };
   uiState.currency = { ...uiState.currency, ...saved.currency };
   uiState.rounding = { ...uiState.rounding, ...saved.rounding };
@@ -1703,6 +1918,7 @@ async function initializeApp() {
   scenarioStore = loadScenarioStore();
   hydrateState(loadLastState());
   setupCollapsibleSections();
+  populatePresetSelect();
   bindEvents();
   populateCurrencyOptions();
   syncInputsFromState();
