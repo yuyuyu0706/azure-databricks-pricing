@@ -93,52 +93,121 @@
                 </label>
               </div>
               <div class="tab-panel" id="derivedInputs" role="tabpanel" aria-labelledby="modeDerivedTab" hidden>
-                <div class="field-grid">
-                  <label class="form-field" for="clusterDbuPerHour">
-                    <span class="field-label" data-i18n="input.cluster_dbu_per_hour"></span>
-                    <input id="clusterDbuPerHour" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="cluster_dbu_per_hour" />
-                    <span class="field-error" data-field-error="cluster_dbu_per_hour"></span>
-                  </label>
-                  <label class="form-field" for="hoursPerMonth">
-                    <span class="field-label" data-i18n="input.hours_per_month"></span>
-                    <input id="hoursPerMonth" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="hours_per_month" />
-                    <span class="field-error" data-field-error="hours_per_month"></span>
-                  </label>
-                  <label class="form-field" for="avgNodes">
-                    <span class="field-label" data-i18n="input.avg_nodes"></span>
-                    <input id="avgNodes" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="avg_nodes" />
-                    <span class="field-error" data-field-error="avg_nodes"></span>
-                  </label>
-                  <label class="form-field" for="dbuPerNodeHour">
-                    <span class="field-label" data-i18n="input.dbu_per_node_hour"></span>
-                    <input id="dbuPerNodeHour" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="dbu_per_node_hour" />
-                    <span class="field-error" data-field-error="dbu_per_node_hour"></span>
-                  </label>
-                  <label class="form-field" for="minNodes">
-                    <span class="field-label" data-i18n="input.min_nodes"></span>
-                    <input id="minNodes" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="min_nodes" />
-                  </label>
-                  <label class="form-field" for="maxNodes">
-                    <span class="field-label" data-i18n="input.max_nodes"></span>
-                    <input id="maxNodes" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="max_nodes" />
-                  </label>
-                  <label class="form-field" for="runsPerDay">
-                    <span class="field-label" data-i18n="input.runs_per_day"></span>
-                    <input id="runsPerDay" class="form-control" type="number" min="0" step="1" inputmode="numeric" autocomplete="off" data-field="runs_per_day" />
-                  </label>
-                  <label class="form-field" for="avgRunHours">
-                    <span class="field-label" data-i18n="input.avg_run_hours"></span>
-                    <input id="avgRunHours" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="avg_run_hours" />
-                  </label>
-                  <label class="form-field" for="idleHours">
-                    <span class="field-label" data-i18n="input.idle_hours"></span>
-                    <input id="idleHours" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="idle_hours_per_run" />
-                  </label>
-                  <label class="form-field" for="efficiencyFactor">
-                    <span class="field-label" data-i18n="input.efficiency"></span>
-                    <input id="efficiencyFactor" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="efficiency_factor" />
-                    <span class="field-error" data-field-error="efficiency_factor"></span>
-                  </label>
+                <div class="field-stack">
+                  <div class="field-group">
+                    <div class="field-group-header">
+                      <span class="field-group-title" data-i18n="input.preset.title"></span>
+                      <span class="field-help" role="img" aria-hidden="true" data-i18n-title="help.preset">?</span>
+                    </div>
+                    <div class="field-group-body">
+                      <label class="form-field" for="presetSelect">
+                        <span class="field-label" data-i18n="input.preset.label"></span>
+                        <select id="presetSelect" class="form-control"></select>
+                      </label>
+                      <p class="field-note" id="presetDescription"></p>
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <div class="field-group-header">
+                      <span class="field-group-title" data-i18n="input.cluster.title"></span>
+                      <span class="field-help" role="img" aria-hidden="true" data-i18n-title="help.cluster_dbu_per_hour">?</span>
+                    </div>
+                    <div class="field-grid">
+                      <label class="form-field" for="clusterDbuPerHour">
+                        <span class="field-label" data-i18n="input.cluster_dbu_per_hour"></span>
+                        <input id="clusterDbuPerHour" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="cluster_dbu_per_hour" />
+                        <span class="field-error" data-field-error="cluster_dbu_per_hour"></span>
+                      </label>
+                      <label class="form-field" for="dbuPerNodeHour">
+                        <span class="field-label" data-i18n="input.dbu_per_node_hour"></span>
+                        <input id="dbuPerNodeHour" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="dbu_per_node_hour" />
+                        <span class="field-error" data-field-error="dbu_per_node_hour"></span>
+                      </label>
+                      <label class="form-field" for="hoursPerMonth">
+                        <span class="field-label" data-i18n="input.hours_per_month"></span>
+                        <input id="hoursPerMonth" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="hours_per_month" />
+                        <span class="field-error" data-field-error="hours_per_month"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <div class="field-group-header">
+                      <span class="field-group-title" data-i18n="input.autoscale.title"></span>
+                      <span class="field-help" role="img" aria-hidden="true" data-i18n-title="help.autoscale">?</span>
+                    </div>
+                    <div class="field-grid">
+                      <label class="form-field" for="minNodes">
+                        <span class="field-label" data-i18n="input.min_nodes"></span>
+                        <input id="minNodes" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="min_nodes" />
+                      </label>
+                      <label class="form-field" for="maxNodes">
+                        <span class="field-label" data-i18n="input.max_nodes"></span>
+                        <input id="maxNodes" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="max_nodes" />
+                      </label>
+                      <label class="form-field" for="avgNodes">
+                        <span class="field-label" data-i18n="input.avg_nodes"></span>
+                        <input id="avgNodes" class="form-control" type="number" min="0" step="0.1" inputmode="decimal" autocomplete="off" data-field="avg_nodes" />
+                        <span class="field-error" data-field-error="avg_nodes"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <div class="field-group-header">
+                      <span class="field-group-title" data-i18n="input.workload.title"></span>
+                      <span class="field-help" role="img" aria-hidden="true" data-i18n-title="help.workload">?</span>
+                    </div>
+                    <div class="field-grid">
+                      <label class="form-field" for="runsPerDay">
+                        <span class="field-label" data-i18n="input.runs_per_day"></span>
+                        <input id="runsPerDay" class="form-control" type="number" min="0" step="1" inputmode="numeric" autocomplete="off" data-field="runs_per_day" />
+                      </label>
+                      <label class="form-field" for="avgRunHours">
+                        <span class="field-label" data-i18n="input.avg_run_hours"></span>
+                        <input id="avgRunHours" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="avg_run_hours" />
+                      </label>
+                      <label class="form-field" for="idleHours">
+                        <span class="field-label" data-i18n="input.idle_hours"></span>
+                        <input id="idleHours" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="idle_hours_per_run" />
+                      </label>
+                      <label class="form-field" for="idleMinutes">
+                        <span class="field-label" data-i18n="input.idle_minutes"></span>
+                        <input id="idleMinutes" class="form-control" type="number" min="0" step="1" inputmode="numeric" autocomplete="off" data-field="idle_minutes" />
+                        <span class="field-error" data-field-error="idle_minutes"></span>
+                      </label>
+                      <label class="form-field" for="daysPerMonth">
+                        <span class="field-label" data-i18n="input.days_per_month"></span>
+                        <input id="daysPerMonth" class="form-control" type="number" min="0" step="1" inputmode="numeric" autocomplete="off" data-field="days_per_month" />
+                        <span class="field-error" data-field-error="days_per_month"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <div class="field-group-header">
+                      <span class="field-group-title" data-i18n="input.advanced.title"></span>
+                      <span class="field-help" role="img" aria-hidden="true" data-i18n-title="help.advanced">?</span>
+                    </div>
+                    <div class="field-grid">
+                      <label class="form-field" for="efficiencyFactor">
+                        <span class="field-label" data-i18n="input.efficiency"></span>
+                        <input id="efficiencyFactor" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="efficiency_factor" />
+                        <span class="field-error" data-field-error="efficiency_factor"></span>
+                      </label>
+                      <label class="form-field" for="retryRate">
+                        <span class="field-label" data-i18n="input.retry_rate"></span>
+                        <input id="retryRate" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" autocomplete="off" data-field="retry_rate" />
+                        <span class="field-error" data-field-error="retry_rate"></span>
+                      </label>
+                      <label class="form-field" for="concurrency">
+                        <span class="field-label" data-i18n="input.concurrency"></span>
+                        <input id="concurrency" class="form-control" type="number" min="0" step="1" inputmode="numeric" autocomplete="off" data-field="concurrency" />
+                        <span class="field-error" data-field-error="concurrency"></span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -271,8 +340,14 @@
           <div class="compare-grid">
             <article class="result-card" id="baseResultCard" aria-live="polite">
               <header class="result-header">
-                <h3 class="result-title" data-i18n="results.base"></h3>
-                <div class="result-meta" id="baseScenarioMeta"></div>
+                <div class="result-header-main">
+                  <h3 class="result-title" data-i18n="results.base"></h3>
+                  <div class="result-meta" id="baseScenarioMeta"></div>
+                </div>
+                <div class="result-flags">
+                  <span class="result-badge warning" id="baseWarningBadge" hidden></span>
+                  <span class="result-badge assumption" id="baseAssumptionBadge" hidden></span>
+                </div>
               </header>
               <div class="result-body">
                 <div class="result-value" id="baseTotal">--</div>
@@ -290,8 +365,14 @@
             </article>
             <article class="result-card variant" id="variantResultCard" aria-live="polite">
               <header class="result-header">
-                <h3 class="result-title" data-i18n="results.variant"></h3>
-                <div class="result-meta" id="variantScenarioMeta"></div>
+                <div class="result-header-main">
+                  <h3 class="result-title" data-i18n="results.variant"></h3>
+                  <div class="result-meta" id="variantScenarioMeta"></div>
+                </div>
+                <div class="result-flags">
+                  <span class="result-badge warning" id="variantWarningBadge" hidden></span>
+                  <span class="result-badge assumption" id="variantAssumptionBadge" hidden></span>
+                </div>
               </header>
               <div class="result-body">
                 <div class="result-value" id="variantTotal">--</div>
@@ -359,7 +440,37 @@
               </button>
             </header>
             <div class="section-body" id="warningsSectionBody">
-              <ul class="warning-list" id="warningList"></ul>
+              <div class="warning-groups">
+                <div class="warning-group" id="baseWarningGroup">
+                  <h4 class="warning-title" data-i18n="results.base"></h4>
+                  <ul class="warning-list" id="baseWarningList"></ul>
+                </div>
+                <div class="warning-group" id="variantWarningGroup">
+                  <h4 class="warning-title" data-i18n="results.variant"></h4>
+                  <ul class="warning-list" id="variantWarningList"></ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="assumptions-section" id="assumptionsSection" aria-live="polite" hidden data-collapsible data-start-collapsed="true">
+            <header class="section-header">
+              <button type="button" class="section-toggle" data-section-toggle aria-expanded="false" aria-controls="assumptionsSectionBody">
+                <span class="section-title" role="heading" aria-level="3" data-i18n="results.assumptions"></span>
+                <span class="section-toggle-icon" aria-hidden="true"></span>
+              </button>
+            </header>
+            <div class="section-body" id="assumptionsSectionBody">
+              <div class="assumption-groups">
+                <div class="assumption-group" id="baseAssumptionGroup">
+                  <h4 class="assumption-title" data-i18n="results.base"></h4>
+                  <ul class="assumption-list" id="baseAssumptionList"></ul>
+                </div>
+                <div class="assumption-group" id="variantAssumptionGroup">
+                  <h4 class="assumption-title" data-i18n="results.variant"></h4>
+                  <ul class="assumption-list" id="variantAssumptionList"></ul>
+                </div>
+              </div>
             </div>
           </section>
         </section>
