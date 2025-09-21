@@ -61,6 +61,7 @@ let pricingTable = null;
 let pricingMeta = null;
 let pricingIssues = [];
 let isReady = false;
+let isCalculationFrozen = false;
 
 const banners = new Map();
 let activeModal = null;
@@ -321,6 +322,7 @@ function renderBanners() {
   banners.forEach((banner, id) => {
     const bannerEl = document.createElement('div');
     bannerEl.className = `banner banner-${banner.type}`;
+    bannerEl.setAttribute('role', 'alert');
     const icon = document.createElement('span');
     icon.className = 'banner-icon';
     icon.textContent = banner.type === 'error' ? '⚠️' : banner.type === 'warning' ? '⚠️' : banner.type === 'success' ? '✅' : 'ℹ️';
@@ -341,6 +343,15 @@ function renderBanners() {
     bannerEl.appendChild(close);
     container.appendChild(bannerEl);
   });
+}
+
+function freezeCalculationUI() {
+  isCalculationFrozen = true;
+  isReady = false;
+}
+
+function unfreezeCalculationUI() {
+  isCalculationFrozen = false;
 }
 
 function isElementVisible(element) {
@@ -1357,7 +1368,7 @@ function updateBadges() {
 }
 
 function runBaseRender() {
-  if (!pricingTable) {
+  if (isCalculationFrozen || !pricingTable) {
     return;
   }
   ensureRateDefaults(uiState);
@@ -1997,6 +2008,10 @@ async function initializeApp() {
     pricingTable = result.data;
     pricingMeta = result.metadata;
     pricingIssues = result.issues || [];
+    setBanner('pricing-error', null, null);
+    if (!pricingMeta?.fromCache) {
+      setBanner('pricing-cache', null, null);
+    }
     const defaults = pricingTable?.defaults || {};
     if (defaults.region?.key) {
       uiState.rateQuery.region = defaults.region.key;
@@ -2012,6 +2027,8 @@ async function initializeApp() {
     }
     if (pricingIssues.length > 0) {
       setBanner('pricing-issues', 'warning', summarizeIssues(pricingIssues));
+    } else {
+      setBanner('pricing-issues', null, null);
     }
     ensureRateDefaults(uiState);
     if (uiState.variant) {
@@ -2020,11 +2037,17 @@ async function initializeApp() {
     populateCurrencyOptions();
     clearSkeleton();
     setUiDisabled(false);
+    unfreezeCalculationUI();
     isReady = true;
     runBaseRender();
     saveLastState();
   } catch (error) {
     console.error('Failed to load pricing data', error);
+    clearSkeleton();
+    setUiDisabled(false);
+    freezeCalculationUI();
+    setBanner('pricing-cache', null, null);
+    setBanner('pricing-issues', null, null);
     setBanner('pricing-error', 'error', t('banner.error.load'));
   }
 }
