@@ -77,6 +77,9 @@ const elements = {
   editionValue: document.getElementById('editionValue'),
   headerSourceLink: document.getElementById('headerSourceLink'),
   headerSourceEffective: document.getElementById('headerSourceEffective'),
+  rateMetaContainer: document.getElementById('rateMeta'),
+  rateMetaSource: document.getElementById('rateMetaSource'),
+  rateMetaEffective: document.getElementById('rateMetaEffective'),
   serviceSelect: document.getElementById('serviceSelect'),
   serviceHint: document.getElementById('serviceHint'),
   serverlessSelect: document.getElementById('serverlessSelect'),
@@ -975,22 +978,109 @@ function formatNumber(value) {
   return NUMBER_FORMAT.format(value);
 }
 
+function buildRateTooltip(record) {
+  if (!record) {
+    return '';
+  }
+  const parts = [];
+  if (record.source) {
+    parts.push(`${t('source.label')}: ${record.source}`);
+  }
+  if (record.effective_from) {
+    parts.push(`${t('source.effective_from')}: ${record.effective_from}`);
+  }
+  return parts.join('\n');
+}
+
+function updateRateMetadata(record) {
+  const hasRecord = Boolean(record);
+  const sourceUrl = record?.source || '';
+  const effectiveDate = record?.effective_from || '';
+  const tooltip = buildRateTooltip(record);
+
+  if (elements.headerSourceEffective) {
+    if (hasRecord && effectiveDate) {
+      elements.headerSourceEffective.textContent = effectiveDate;
+      elements.headerSourceEffective.setAttribute('datetime', effectiveDate);
+      elements.headerSourceEffective.setAttribute('title', effectiveDate);
+    } else {
+      elements.headerSourceEffective.textContent = '--';
+      elements.headerSourceEffective.removeAttribute('datetime');
+      elements.headerSourceEffective.removeAttribute('title');
+    }
+  }
+
+  if (elements.headerSourceLink) {
+    elements.headerSourceLink.textContent = t('source.link');
+    if (hasRecord && sourceUrl) {
+      elements.headerSourceLink.href = sourceUrl;
+      elements.headerSourceLink.removeAttribute('tabindex');
+      elements.headerSourceLink.setAttribute('title', sourceUrl);
+      elements.headerSourceLink.setAttribute('aria-disabled', 'false');
+    } else {
+      elements.headerSourceLink.removeAttribute('href');
+      elements.headerSourceLink.removeAttribute('title');
+      elements.headerSourceLink.setAttribute('tabindex', '-1');
+      elements.headerSourceLink.setAttribute('aria-disabled', 'true');
+    }
+  }
+
+  if (elements.rateMetaContainer) {
+    elements.rateMetaContainer.hidden = !hasRecord;
+  }
+
+  if (elements.rateMetaSource) {
+    elements.rateMetaSource.textContent = t('source.link');
+    if (hasRecord && sourceUrl) {
+      elements.rateMetaSource.href = sourceUrl;
+      elements.rateMetaSource.removeAttribute('tabindex');
+      elements.rateMetaSource.setAttribute('title', sourceUrl);
+      elements.rateMetaSource.setAttribute('aria-disabled', 'false');
+    } else {
+      elements.rateMetaSource.removeAttribute('href');
+      elements.rateMetaSource.removeAttribute('title');
+      elements.rateMetaSource.setAttribute('tabindex', '-1');
+      elements.rateMetaSource.setAttribute('aria-disabled', 'true');
+    }
+  }
+
+  if (elements.rateMetaEffective) {
+    if (hasRecord && effectiveDate) {
+      elements.rateMetaEffective.textContent = effectiveDate;
+      elements.rateMetaEffective.setAttribute('datetime', effectiveDate);
+      elements.rateMetaEffective.setAttribute('title', effectiveDate);
+    } else {
+      elements.rateMetaEffective.textContent = '--';
+      elements.rateMetaEffective.removeAttribute('datetime');
+      elements.rateMetaEffective.removeAttribute('title');
+    }
+  }
+
+  if (elements.serviceSelect) {
+    if (tooltip) {
+      elements.serviceSelect.setAttribute('title', tooltip);
+    } else {
+      elements.serviceSelect.removeAttribute('title');
+    }
+  }
+
+  if (elements.serverlessSelect) {
+    if (tooltip) {
+      elements.serverlessSelect.setAttribute('title', tooltip);
+    } else {
+      elements.serverlessSelect.removeAttribute('title');
+    }
+  }
+}
+
 function updateBaseResult(result, record) {
   updateResultBadges(result, elements.baseWarningBadge, elements.baseAssumptionBadge);
+  updateRateMetadata(record);
   if (!result) {
     elements.baseTotal.textContent = '--';
     elements.baseDbu.textContent = '--';
     elements.baseInfra.textContent = '--';
     elements.baseScenarioMeta.textContent = '';
-    if (elements.headerSourceEffective) {
-      elements.headerSourceEffective.textContent = '--';
-      elements.headerSourceEffective.removeAttribute('datetime');
-    }
-    if (elements.headerSourceLink) {
-      elements.headerSourceLink.removeAttribute('href');
-      elements.headerSourceLink.setAttribute('tabindex', '-1');
-      elements.headerSourceLink.setAttribute('aria-disabled', 'true');
-    }
     return;
   }
   const currency = result.meta.currency;
@@ -1001,40 +1091,6 @@ function updateBaseResult(result, record) {
     elements.baseScenarioMeta.textContent = t('scenario.current', { name: uiState.scenario.name });
   } else {
     elements.baseScenarioMeta.textContent = '';
-  }
-  if (record) {
-    if (elements.headerSourceEffective) {
-      elements.headerSourceEffective.textContent = record.effective_from || '--';
-      if (record.effective_from) {
-        elements.headerSourceEffective.setAttribute('datetime', record.effective_from);
-      } else {
-        elements.headerSourceEffective.removeAttribute('datetime');
-      }
-    }
-    if (elements.headerSourceLink) {
-      elements.headerSourceLink.textContent = t('source.link');
-      if (record.source) {
-        elements.headerSourceLink.href = record.source;
-        elements.headerSourceLink.removeAttribute('tabindex');
-        elements.headerSourceLink.setAttribute('title', record.source);
-        elements.headerSourceLink.setAttribute('aria-disabled', 'false');
-      } else {
-        elements.headerSourceLink.removeAttribute('href');
-        elements.headerSourceLink.setAttribute('tabindex', '-1');
-        elements.headerSourceLink.setAttribute('aria-disabled', 'true');
-      }
-    }
-  } else {
-    if (elements.headerSourceEffective) {
-      elements.headerSourceEffective.textContent = '--';
-      elements.headerSourceEffective.removeAttribute('datetime');
-    }
-    if (elements.headerSourceLink) {
-      elements.headerSourceLink.removeAttribute('href');
-      elements.headerSourceLink.setAttribute('tabindex', '-1');
-      elements.headerSourceLink.setAttribute('aria-disabled', 'true');
-      elements.headerSourceLink.textContent = t('source.link');
-    }
   }
 }
 
@@ -1318,8 +1374,18 @@ function runBaseRender() {
   const validation = validateState(uiState, numeric);
   applyValidation(validation);
 
+  const serverlessSelected =
+    uiState.rateQuery.serverless === true || uiState.rateQuery.serverless === 'true';
+  const rateRecord = selectRate(pricingTable, {
+    cloud: uiState.rateQuery.cloud,
+    region: uiState.rateQuery.region,
+    edition: uiState.rateQuery.edition,
+    service: uiState.rateQuery.service,
+    serverless: serverlessSelected
+  });
+
   if (!validation.valid) {
-    updateBaseResult(null, null);
+    updateBaseResult(null, rateRecord);
     updateWarnings(null, null);
     updateAssumptions(null, null);
     updateDonut(null);
@@ -1331,7 +1397,7 @@ function runBaseRender() {
   const scenario = buildScenario(uiState, numeric);
   const options = buildOptions(uiState, numeric);
   const result = estimate(scenario, pricingTable, options);
-  const record = selectRate(pricingTable, scenario.rateQuery);
+  const record = rateRecord || selectRate(pricingTable, scenario.rateQuery);
   updateBaseResult(result, record);
   updateDonut(result);
   updateSensitivitySummary(result, scenario, options);
@@ -1959,7 +2025,7 @@ async function initializeApp() {
     saveLastState();
   } catch (error) {
     console.error('Failed to load pricing data', error);
-    setBanner('pricing-error', 'error', `${t('banner.error.load')}\n${error.message}`);
+    setBanner('pricing-error', 'error', t('banner.error.load'));
   }
 }
 
